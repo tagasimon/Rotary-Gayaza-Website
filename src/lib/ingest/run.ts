@@ -68,8 +68,11 @@ export async function runSource(src: EventSource): Promise<Result> {
   try {
     switch (src.kind) {
       case "D9213_ICAL": {
-        const events = parseIcs(await fetchText(src.url)).filter((e) => inWindow(e.startsAt) && keywordsMatch(src, `${e.title} ${e.venue ?? ""}`));
-        r.found = events.length;
+        const all = parseIcs(await fetchText(src.url)).filter((e) => inWindow(e.startsAt) && keywordsMatch(src, `${e.title} ${e.venue ?? ""}`));
+        r.found = all.length;
+        // the district calendar lists the Governor's visit to every club — keep only ours
+        const events = all.filter((e) => !(/\bDG'?s?\b.*visit|governor'?s?\s+visit/i.test(e.title) && !mentionsClub(e.title)));
+        r.skipped += all.length - events.length;
         for (const e of events) await upsertEvent(src, { ...e, url: e.url ?? "https://rotaryd9213.org/" }, mentionsClub(e.title) && !/rac\b|rotaract/i.test(e.title) ? "CLUB" : "DISTRICT", r);
         break;
       }
