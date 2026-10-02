@@ -1,0 +1,739 @@
+// Rotary Club of Gayaza — data model
+// Conventions:
+//  * Every editorial record carries createdAt / updatedAt / createdById / status.
+//  * Every factual record carries provenance: sourceLabel, sourceUrl, verification.
+//    verification = VERIFIED (traceable public source) | CLUB_RECORD (supplied by the club,
+//    awaiting confirmation) | NEEDS_CONFIRMATION (unclear / conflicting).
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────── enums ─────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  ATTENDANCE_MANAGER
+}
+
+enum ContentStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum EventStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum Verification {
+  VERIFIED
+  CLUB_RECORD
+  NEEDS_CONFIRMATION
+}
+
+enum EventType {
+  CLUB_EVENT
+  FELLOWSHIP
+  SERVICE_PROJECT
+  DISTRICT_EVENT
+  DG_VISIT
+  ROTARY_WIDE
+  YOUTH_EVENT
+  SPECIAL_EVENT
+}
+
+enum EventScope {
+  CLUB      // "Our events"
+  DISTRICT  // "District events"
+  COMMUNITY // "Rotary community events"
+}
+
+enum SourceKind {
+  MANUAL
+  D9213_ICAL
+  D9213_HOME_EVENTS
+  D9213_STORIES
+  D9213_ALBUMS
+  ROTARYO_FELLOWSHIPS
+  URL_IMPORT
+}
+
+enum ClubType {
+  ROTARY
+  ROTARACT
+  INTERACT
+  ROTARY_COMMUNITY_CORPS
+  OTHER
+}
+
+enum RelationshipType {
+  MOTHER_CLUB
+  SUPPORTED
+  SPONSORED
+  MENTORED
+  CHARTERED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  HONORARY
+  INACTIVE
+  LEFT
+}
+
+enum MeetingType {
+  REGULAR
+  FELLOWSHIP
+  SERVICE
+  DG_VISIT
+  BOARD
+  SPECIAL
+}
+
+enum AttendanceStatus {
+  PRESENT
+  EXCUSED
+  MAKEUP
+}
+
+enum AttendanceMethod {
+  QR
+  MANUAL
+}
+
+enum DiscoveredType {
+  EVENT
+  STORY
+  PHOTO_ALBUM
+  DG_VISIT
+  CLUB_MENTION
+  CLUB
+  OTHER
+}
+
+enum DiscoveredStatus {
+  NEW
+  APPROVED
+  REJECTED
+}
+
+enum AlbumKind {
+  PROJECT
+  DG_VISIT
+  FELLOWSHIP
+  LEADERSHIP
+  EVENT
+  ARCHIVE
+  GENERAL
+}
+
+enum TimelineKind {
+  FORMATION
+  CHARTER
+  MILESTONE
+  PROJECT
+  YOUTH_CLUB
+  LEADERSHIP
+  DG_VISIT
+  UPCOMING
+}
+
+// ───────────────────────── people & access ─────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(EDITOR)
+  active       Boolean   @default(true)
+  lastLoginAt  DateTime?
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
+  memberId     String?   @unique
+  member       Member?   @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+  auditLogs    AuditLog[]
+}
+
+// Database-backed sessions for both admin users and members.
+// Only the SHA-256 hash of the cookie token is stored.
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  kind       String // "admin" | "member"
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberId   String?
+  member     Member?  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+model Member {
+  id                 String            @id @default(cuid())
+  memberNumber       String            @unique // e.g. Rotary member ID or club number
+  fullName           String
+  photoUrl           String?
+  email              String?
+  phone              String?
+  joinDate           DateTime?
+  leftAt             DateTime? // set when a member leaves, so historical attendance stays fair
+  status             MembershipStatus  @default(ACTIVE)
+  rotaryRole         String? // e.g. "President", "Club Secretary"
+  roleOrder          Int               @default(100)
+  showOnLeadership   Boolean           @default(false)
+  publicProfile      Boolean           @default(false) // name/photo/role may appear on public site
+  showContactPublic  Boolean           @default(false) // email/phone shown publicly (explicit opt-in)
+  bio                String?
+  pinHash            String?
+  pinSetAt           DateTime?
+  failedPinAttempts  Int               @default(0)
+  pinLockedUntil     DateTime?
+  sourceLabel        String?
+  sourceUrl          String?
+  verification       Verification      @default(CLUB_RECORD)
+  clubId             String?
+  club               Club?             @relation(fields: [clubId], references: [id])
+  createdById        String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  attendance         AttendanceRecord[]
+  sessions           Session[]
+  user               User?
+  presidencies       President[]
+
+  @@index([status])
+  @@index([fullName])
+}
+
+// ───────────────────────── club & family ─────────────────────────
+
+model Club {
+  id             String       @id @default(cuid())
+  slug           String       @unique
+  name           String
+  shortName      String?
+  type           ClubType     @default(ROTARY)
+  isHome         Boolean      @default(false) // Rotary Club of Gayaza
+  district       String?
+  clubNumber     String?
+  charterDate    DateTime?
+  charterDateLabel String?
+  meetingDay     String?
+  meetingTime    String?
+  venue          String?
+  address        String?
+  latitude       Float?
+  longitude      Float?
+  email          String?
+  website        String?
+  xUrl           String?
+  logoUrl        String?
+  description    String?
+  story          String?
+  sourceLabel    String?
+  sourceUrl      String?
+  verification   Verification @default(CLUB_RECORD)
+  status         ContentStatus @default(PUBLISHED)
+  createdById    String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  parentOf       ClubRelationship[] @relation("parent")
+  childOf        ClubRelationship[] @relation("child")
+  events         Event[]
+  projects       Project[]
+  dgVisits       DGVisit[]
+  members        Member[]
+  presidents     President[]
+}
+
+model ClubRelationship {
+  id               String           @id @default(cuid())
+  parentClubId     String
+  parentClub       Club             @relation("parent", fields: [parentClubId], references: [id], onDelete: Cascade)
+  childClubId      String
+  childClub        Club             @relation("child", fields: [childClubId], references: [id], onDelete: Cascade)
+  relationshipType RelationshipType
+  year             String? // free text: "2021", "2022-23"
+  description      String?
+  sourceLabel      String?
+  sourceUrl        String?
+  verification     Verification     @default(CLUB_RECORD)
+  status           ContentStatus    @default(PUBLISHED)
+  order            Int              @default(0)
+  createdById      String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([parentClubId, childClubId, relationshipType])
+}
+
+// ───────────────────────── leadership ─────────────────────────
+
+model President {
+  id           String        @id @default(cuid())
+  name         String
+  rotaryYear   String // "2026-27"
+  photoUrl     String?
+  message      String?
+  achievements String[]
+  awards       String[]
+  archiveLinks String[]
+  isCurrent    Boolean       @default(false)
+  memberId     String?
+  member       Member?       @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  clubId       String?
+  club         Club?         @relation(fields: [clubId], references: [id])
+  sourceLabel  String?
+  sourceUrl    String?
+  verification Verification  @default(CLUB_RECORD)
+  status       ContentStatus @default(PUBLISHED)
+  createdById  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([rotaryYear])
+}
+
+// ───────────────────────── events ─────────────────────────
+
+model EventSource {
+  id          String     @id @default(cuid())
+  key         String     @unique
+  name        String
+  kind        SourceKind
+  url         String
+  enabled     Boolean    @default(true)
+  keywords    String[] // filter terms, e.g. ["gayaza"]
+  notes       String?
+  lastRunAt   DateTime?
+  lastStatus  String?
+  lastError   String?
+  lastFound   Int        @default(0)
+  lastCreated Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  events      Event[]
+}
+
+model Event {
+  id               String       @id @default(cuid())
+  slug             String       @unique
+  title            String
+  description      String?
+  type             EventType    @default(CLUB_EVENT)
+  scope            EventScope   @default(CLUB)
+  startsAt         DateTime
+  endsAt           DateTime?
+  allDay           Boolean      @default(false)
+  timeTbc          Boolean      @default(false)
+  venue            String?
+  location         String?
+  address          String?
+  latitude         Float?
+  longitude        Float?
+  organiser        String?
+  imageUrl         String?
+  registrationUrl  String?
+  featured         Boolean      @default(false)
+  status           EventStatus  @default(APPROVED)
+  // provenance / ingestion
+  sourceId         String?
+  source           EventSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  sourceLabel      String?
+  sourceUrl        String?
+  externalId       String?
+  dedupeKey        String?
+  importedAt       DateTime?
+  lastCheckedAt    DateTime?
+  clubId           String?
+  club             Club?        @relation(fields: [clubId], references: [id])
+  createdById      String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  meetings         Meeting[]
+  dgVisits         DGVisit[]
+
+  @@unique([sourceId, externalId])
+  @@index([dedupeKey])
+  @@index([status, startsAt])
+  @@index([scope, status, startsAt])
+}
+
+model DGVisit {
+  id                 String        @id @default(cuid())
+  slug               String        @unique
+  governorName       String
+  rotaryYear         String
+  date               DateTime
+  timeLabel          String? // "3:00 PM"
+  venue              String?
+  summary            String?
+  story              String?
+  message            String? // governor's message / speech notes
+  projectsHighlighted String[]
+  heroImageUrl       String?
+  albumId            String?
+  album              Album?        @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  eventId            String?
+  event              Event?        @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  clubId             String?
+  club               Club?         @relation(fields: [clubId], references: [id])
+  sourceLabel        String?
+  sourceUrl          String?
+  verification       Verification  @default(CLUB_RECORD)
+  status             ContentStatus @default(PUBLISHED)
+  createdById        String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([date])
+}
+
+// ───────────────────────── projects, stories, impact ─────────────────────────
+
+model Project {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  title          String
+  summary        String?
+  challenge      String?
+  action         String? // what the club did
+  people         String? // the people / community
+  result         String?
+  story          String? // long-form markdown
+  dateLabel      String? // "29 Aug 2021", "2022", "Reported July 2025"
+  startDate      DateTime?
+  endDate        DateTime?
+  rotaryYear     String?
+  location       String?
+  latitude       Float?
+  longitude      Float?
+  projectType    String?
+  areaOfFocus    String? // Rotary area of focus
+  impactCategory String? // Health / Education / Youth / ...
+  participants   String?
+  peopleReached  String? // keep as text: "600+"
+  budget         String?
+  fundingSource  String?
+  partners       String[]
+  outcomes       String[]
+  heroImageUrl   String?
+  videoUrls      String[]
+  documentUrls   String[]
+  externalLinks  String[]
+  albumId        String?
+  album          Album?        @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  featured       Boolean       @default(false)
+  projectStatus  String? // Completed / Ongoing / Planned
+  clubId         String?
+  club           Club?         @relation(fields: [clubId], references: [id])
+  sourceLabel    String?
+  sourceUrl      String?
+  verification   Verification  @default(CLUB_RECORD)
+  status         ContentStatus @default(DRAFT)
+  createdById    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  stories        Story[]
+
+  @@index([status, startDate])
+}
+
+model Story {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  title        String
+  dek          String? // short intro
+  body         String? // markdown
+  heroImageUrl String?
+  place        String?
+  people       String[]
+  impact       String?
+  projectId    String?
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  albumId      String?
+  album        Album?        @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  publishedAt  DateTime?
+  featured     Boolean       @default(false)
+  sourceLabel  String?
+  sourceUrl    String?
+  verification Verification  @default(CLUB_RECORD)
+  status       ContentStatus @default(DRAFT)
+  createdById  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+model ImpactMetric {
+  id           String        @id @default(cuid())
+  value        String // display value "600+"
+  numericValue Int? // for count-up animation
+  label        String
+  period       String? // "Reported July 2025"
+  category     String?
+  sourceLabel  String?
+  sourceUrl    String?
+  verification Verification  @default(CLUB_RECORD)
+  featured     Boolean       @default(true)
+  order        Int           @default(0)
+  status       ContentStatus @default(PUBLISHED)
+  createdById  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model TimelineEntry {
+  id           String        @id @default(cuid())
+  date         DateTime
+  dateLabel    String // "June 2021"
+  title        String
+  description  String?
+  kind         TimelineKind  @default(MILESTONE)
+  chapter      String? // where-we-started | how-we-grew | where-we-are-going
+  imageUrl     String?
+  linkUrl      String?
+  sourceLabel  String?
+  sourceUrl    String?
+  verification Verification  @default(CLUB_RECORD)
+  status       ContentStatus @default(PUBLISHED)
+  createdById  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([date])
+}
+
+// Editable text blocks for the homepage and Our Story page.
+model SiteSection {
+  id          String        @id @default(cuid())
+  key         String        @unique
+  eyebrow     String?
+  title       String?
+  body        String? // markdown
+  ctaLabel    String?
+  ctaHref     String?
+  imageUrl    String?
+  order       Int           @default(0)
+  status      ContentStatus @default(PUBLISHED)
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Announcement {
+  id          String        @id @default(cuid())
+  title       String
+  body        String?
+  audience    String        @default("members") // members | public
+  pinned      Boolean       @default(false)
+  expiresAt   DateTime?
+  status      ContentStatus @default(PUBLISHED)
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+// ───────────────────────── media ─────────────────────────
+
+model Album {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  description String?
+  kind        AlbumKind     @default(GENERAL)
+  date        DateTime?
+  coverUrl    String?
+  sourceLabel String?
+  sourceUrl   String?
+  status      ContentStatus @default(PUBLISHED)
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  media       Media[]
+  projects    Project[]
+  stories     Story[]
+  dgVisits    DGVisit[]
+}
+
+model Media {
+  id          String        @id @default(cuid())
+  url         String
+  thumbUrl    String?
+  kind        String        @default("image") // image | video | document
+  mimeType    String?
+  width       Int?
+  height      Int?
+  alt         String?
+  caption     String?
+  credit      String?
+  crop        String? // wide | portrait | square | full
+  storageKey  String?
+  albumId     String?
+  album       Album?        @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  order       Int           @default(0)
+  sourceUrl   String?
+  status      ContentStatus @default(PUBLISHED)
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([albumId, order])
+}
+
+// ───────────────────────── attendance ─────────────────────────
+
+model Meeting {
+  id                    String              @id @default(cuid())
+  title                 String
+  type                  MeetingType         @default(REGULAR)
+  date                  DateTime // start date-time
+  endsAt                DateTime?
+  rotaryYear            String // derived from date, stored for fast grouping
+  venue                 String?
+  notes                 String?
+  guestCount            Int                 @default(0) // guests not individually checked in
+  countsTowardAttendance Boolean            @default(true)
+  eventId               String?
+  event                 Event?              @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  status                ContentStatus       @default(PUBLISHED)
+  createdById           String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  sessions              AttendanceSession[]
+  records               AttendanceRecord[]
+
+  @@index([date])
+  @@index([rotaryYear])
+}
+
+model AttendanceSession {
+  id          String    @id @default(cuid())
+  token       String    @unique // 256-bit random, base64url
+  meetingId   String
+  meeting     Meeting   @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  opensAt     DateTime
+  closesAt    DateTime
+  revokedAt   DateTime?
+  allowGuests Boolean   @default(true)
+  createdById String?
+  createdAt   DateTime  @default(now())
+  records     AttendanceRecord[]
+
+  @@index([meetingId])
+}
+
+model AttendanceRecord {
+  id          String             @id @default(cuid())
+  meetingId   String
+  meeting     Meeting            @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  memberId    String?
+  member      Member?            @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  guestName   String?
+  guestPhone  String?
+  guestClub   String?
+  status      AttendanceStatus   @default(PRESENT)
+  method      AttendanceMethod   @default(QR)
+  sessionId   String?
+  session     AttendanceSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  note        String?
+  recordedById String?
+  checkedInAt DateTime           @default(now())
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@unique([meetingId, memberId])
+  @@index([memberId])
+}
+
+// ───────────────────────── discovery & ops ─────────────────────────
+
+model DiscoveredItem {
+  id                   String           @id @default(cuid())
+  sourceKey            String
+  sourceLabel          String
+  type                 DiscoveredType
+  title                String
+  url                  String?
+  itemDate             DateTime?
+  summary              String?
+  imageUrl             String?
+  payload              Json?
+  suggestedDestination String? // events | stories | dg-visits | albums | family
+  dedupeKey            String           @unique
+  status               DiscoveredStatus @default(NEW)
+  resultRef            String? // "story:<id>" etc. once approved
+  reviewedById         String?
+  reviewedAt           DateTime?
+  importedAt           DateTime         @default(now())
+  lastSeenAt           DateTime         @default(now())
+
+  @@index([status, importedAt])
+}
+
+model IngestionRun {
+  id         String    @id @default(cuid())
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  trigger    String // schedule | manual | cron-endpoint
+  summary    Json?
+  ok         Boolean   @default(true)
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  interest  String?
+  message   String
+  handled   Boolean  @default(false)
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  actorName String?
+  action    String // create | update | delete | approve | login ...
+  entity    String
+  entityId  String?
+  summary   String?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
