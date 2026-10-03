@@ -76,6 +76,17 @@ There is **one permanent QR code**. It never changes, so print it once (**Admin 
 4. Signing in twice on the same day (same email or phone) updates the first entry instead of adding a duplicate.
 5. The phone remembers the person's answers, so next Sunday it's one tap.
 
+### Thank-you emails and make-up cards
+
+When someone signs in with an email address, the site emails them straight away through [Resend](https://resend.com), from `EMAIL_FROM` with replies going to the club email:
+
+* **Members** get a short thank-you for attending, with the next club event.
+* **Guests** get a thank-you for visiting plus a **PDF make-up card** (their name, home club, the meeting, date and venue, a card number and the Club Secretary's name), to give to their own club secretary.
+
+Set `RESEND_API_KEY` (a send-only key for the verified rotarygayaza.org domain) and `EMAIL_FROM` in Coolify. Without a key, sign-in works as before and no emails are sent. `ATTENDANCE_EMAILS=false` pauses them.
+
+Each fellowship page in **Admin → Attendance** shows each person's email status (sent, failed with the reason, or pending), with **Send now / Send again**, **Preview email**, **Make-up card (PDF)** for guests, and **Send pending** for anyone added by hand.
+
 Scanning from outside the venue is allowed on purpose. There are no PINs or logins for members.
 
 When a member's email or phone matches the **Members & board** directory, the sign-in is linked to their record.

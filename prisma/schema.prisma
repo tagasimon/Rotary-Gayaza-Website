@@ -668,6 +668,10 @@ model AttendanceRecord {
   session     AttendanceSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
   note        String?
   recordedById String?
+  // thank-you email (and make-up card for guests)
+  emailStatus String? // SENT | FAILED | SKIPPED
+  emailSentAt DateTime?
+  emailError  String?
   checkedInAt DateTime           @default(now())
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt

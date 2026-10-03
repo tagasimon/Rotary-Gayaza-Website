@@ -39,3 +39,21 @@ export async function deleteMeeting(meetingId: string) {
   await audit(u, "delete", "Meeting", meetingId, "Deleted a fellowship and its sign-ins");
   redirect("/admin/attendance");
 }
+
+export async function emailRecord(meetingId: string, recordId: string) {
+  const u = await requireAdmin("attendance");
+  const { sendAttendanceEmail } = await import("@/lib/attendance-email");
+  const res = await sendAttendanceEmail(recordId, { force: true });
+  await audit(u, "attendance-email", "AttendanceRecord", recordId, `Thank-you email: ${res.status}${res.error ? ` (${res.error})` : ""}`, { meetingId });
+  revalidatePath(`/admin/attendance/${meetingId}`);
+}
+
+export async function emailAllPending(meetingId: string) {
+  const u = await requireAdmin("attendance");
+  const { sendAttendanceEmail } = await import("@/lib/attendance-email");
+  const pending = await db.attendanceRecord.findMany({ where: { meetingId, email: { not: null }, OR: [{ emailStatus: null }, { emailStatus: { not: "SENT" } }] }, select: { id: true } });
+  let sent = 0;
+  for (const r of pending) if ((await sendAttendanceEmail(r.id, { force: true })).status === "SENT") sent++;
+  await audit(u, "attendance-email", "Meeting", meetingId, `Sent ${sent} of ${pending.length} pending thank-you emails`);
+  revalidatePath(`/admin/attendance/${meetingId}`);
+}

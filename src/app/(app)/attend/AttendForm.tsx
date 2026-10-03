@@ -133,7 +133,7 @@ export function AttendForm() {
         <span aria-hidden className="grid h-12 w-12 place-items-center rounded-full bg-white text-2xl text-royal">✓</span>
         <p className="display mt-5 text-[1.8rem] leading-tight">{state.duplicate ? "You're already signed in." : `Welcome, ${state.name}.`}</p>
         <p className="mt-2 font-sans text-white/75">{state.meeting} · {state.when}</p>
-        <p className="mt-4 font-sans text-sm text-white/60">{state.duplicate ? "We've updated your details." : "Thank you for joining us. Enjoy the fellowship."}</p>
+        <p className="mt-4 font-sans text-sm text-white/60">{state.duplicate ? "We've updated your details." : "Thank you for joining us. Enjoy the meeting."}{state.emailed && !state.duplicate ? (status === "guest" ? " We've emailed you a thank-you note with your make-up card." : " We've emailed you a thank-you note.") : ""}</p>
       </div>
     );
   }

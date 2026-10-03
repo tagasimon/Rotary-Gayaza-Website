@@ -2,10 +2,13 @@
 import { z } from "zod";
 import { clientIp } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { after } from "next/server";
 import { recordCheckIn } from "@/lib/attendance";
+import { sendAttendanceEmail } from "@/lib/attendance-email";
+import { emailConfigured } from "@/lib/email/resend";
 import { formatDate, formatTime } from "@/lib/time";
 
-export type AttendState = { ok?: boolean; duplicate?: boolean; name?: string; meeting?: string; when?: string; error?: string };
+export type AttendState = { ok?: boolean; duplicate?: boolean; emailed?: boolean; name?: string; meeting?: string; when?: string; error?: string };
 
 const schema = z.object({
   status: z.enum(["member", "guest"], { message: "Tell us whether you are a member or a guest." }),
@@ -27,8 +30,10 @@ export async function signIn(_: AttendState, form: FormData): Promise<AttendStat
   if (v.status === "guest" && !v.club) return { error: "Please choose (or type) your club." };
   // Members of RC Gayaza are Rotarians, so members aren't asked.
   const affiliation = v.status === "member" ? "ROTARIAN" : v.affiliation!;
-  const { meeting, duplicate } = await recordCheckIn({
+  const { meeting, record, duplicate } = await recordCheckIn({
     name: v.name, email: v.email ?? "", phone: v.phone ?? "", isGuest: v.status === "guest", affiliation, clubName: v.status === "guest" ? v.club! : null,
   });
-  return { ok: true, duplicate, name: v.name.split(" ")[0], meeting: meeting.title, when: `${formatDate(meeting.date, "day")} · ${formatTime(new Date())}` };
+  // thank-you email (guests also get a PDF make-up card), sent after the response so sign-in stays instant
+  if (record.email) after(() => sendAttendanceEmail(record.id).then(() => undefined));
+  return { ok: true, duplicate, emailed: !!record.email && emailConfigured(), name: v.name.split(" ")[0], meeting: meeting.title, when: `${formatDate(meeting.date, "day")} · ${formatTime(new Date())}` };
 }

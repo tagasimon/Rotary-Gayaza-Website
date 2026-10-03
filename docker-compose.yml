@@ -21,6 +21,9 @@ services:
       S3_PUBLIC_URL: ${S3_PUBLIC_URL:-}
       S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-false}
       INGEST_ENABLED: ${INGEST_ENABLED:-true}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-Rotary Club of Gayaza <meetings@rotarygayaza.org>}
+      ATTENDANCE_EMAILS: ${ATTENDANCE_EMAILS:-true}
       INGEST_INTERVAL_HOURS: ${INGEST_INTERVAL_HOURS:-12}
       MEMBER_SESSION_DAYS: ${MEMBER_SESSION_DAYS:-180}
     volumes:
