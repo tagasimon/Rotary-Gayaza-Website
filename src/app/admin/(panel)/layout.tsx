@@ -13,7 +13,7 @@ export default async function Panel({ children }: { children: React.ReactNode })
     db.contactMessage.count({ where: { handled: false } }),
   ]);
   const badges: Record<string, number> = { "/admin/inbox": inbox + events, "/admin/messages": messages };
-  const groups = ADMIN_NAV.map((g) => ({ group: g.group, items: g.items.filter((i) => !i.perm || can(u.role, i.perm)).map((i) => ({ ...i, badge: badges[i.href] })) })).filter((g) => g.items.length);
+  const groups = ADMIN_NAV.map((g) => ({ group: g.group, collapsed: g.collapsed, items: g.items.filter((i) => !i.perm || can(u.role, i.perm)).map((i) => ({ ...i, badge: badges[i.href] })) })).filter((g) => g.items.length);
   return (
     <div className="lg:flex">
       <Sidebar groups={groups} user={{ name: u.name, role: ROLE_LABEL[u.role] }} />

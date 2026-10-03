@@ -2,14 +2,13 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { requireAdmin, hashSecret } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { getResource } from "@/lib/admin/resources";
 import { parseForm } from "@/lib/admin/parse";
 import { audit } from "@/lib/audit";
 import { invalidateContent } from "@/lib/cache";
 import { slugify, normalizeTitle } from "@/lib/slug";
 import { toLocalInput } from "@/lib/time";
-import { randomInt } from "node:crypto";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const delegate = (model: string) => (db as any)[model];
@@ -71,14 +70,3 @@ export async function deleteResource(key: string, id: string) {
   redirect(`/admin/content/${key}`);
 }
 
-/** Sets a member's attendance PIN. If none is given, generates a 4-digit PIN and returns it once. */
-export async function setMemberPin(memberId: string, _: { pin?: string; error?: string }, form: FormData): Promise<{ pin?: string; error?: string }> {
-  const user = await requireAdmin("members");
-  let pin = String(form.get("pin") ?? "").trim();
-  if (pin && !/^\d{4,8}$/.test(pin)) return { error: "PIN must be 4–8 digits." };
-  if (!pin) pin = String(randomInt(0, 1_000_000)).padStart(6, "0");
-  await db.member.update({ where: { id: memberId }, data: { pinHash: await hashSecret(pin), pinSetAt: new Date(), failedPinAttempts: 0, pinLockedUntil: null } });
-  await db.session.deleteMany({ where: { memberId } });
-  await audit(user, "set-pin", "Member", memberId, "Set attendance PIN (existing phone sessions signed out)");
-  return { pin };
-}

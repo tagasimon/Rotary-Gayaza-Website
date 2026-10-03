@@ -15,7 +15,7 @@ Self-hosted: Docker / Docker Compose / Coolify. No Firebase, no Vercel-only feat
 
 | Area | Where | Notes |
 |---|---|---|
-| Homepage | `/` | Hero, next DG visit with countdown, who we are, sourced impact numbers, project stories, **Rotary Family tree**, 2021→today→next timeline, three separate event lists, leadership, stories, get involved |
+| Homepage | `/` | Hero, **next Sunday fellowship** (with flyer), about and founding story, our work, impact numbers, latest projects, **Rotary family tree**, events, the board, **in the news**, **sponsors**, contact |
 | Our Story | `/our-story` | Editable chapters (*Where we started / How we grew / What we learned / Where we are going*) and a dated timeline with archive photos |
 | Our Impact | `/impact` | Lists only impact areas with documented work. Every metric states its period and source |
 | Projects | `/projects`, `/projects/[slug]` | Search plus filters (year, Rotary year, area of focus, location, type, partner, status). Pages are structured as challenge → action → people → result |
@@ -26,10 +26,8 @@ Self-hosted: Docker / Docker Compose / Coolify. No Firebase, no Vercel-only feat
 | Stories of Service | `/stories/[slug]` | Magazine layout, gallery, sharing, source attribution |
 | Photographs | `/gallery/[slug]` | Paginated albums, full-screen lightbox |
 | Contact | `/contact` | Form (honeypot + rate limit), map, X follow card |
-| Attendance | `/attendance/[token]` | Mobile check-in for members and guests. A remembered phone needs one tap |
-| Member portal | `/member` | My attendance %, meetings, announcements, upcoming events, change PIN |
-| QR scanner | `/scan` | In-browser scanner (BarcodeDetector + jsQR fallback). The phone's own camera also works |
-| Admin | `/admin` | Dashboard, meetings & QR, analytics with charts and CSV, members, CMS for every content type, media library, Discovered Online inbox, sources & import, messages, users, audit log |
+| Fellowship sign-in | `/attend` | The permanent-QR attendance form (member or guest, Rotarian or Rotaractor, club, name, email, phone) |
+| Admin | `/admin` | A short menu: Dashboard, Attendance, Events, Projects, News & stories, Media appearances, Sponsors, Photos, Discovered online. Everything else is under "More" |
 
 ## Content provenance (read this before editing content)
 
@@ -49,7 +47,7 @@ cp .env.example .env            # set DATABASE_URL, APP_URL=http://localhost:300
 npm install
 npx prisma migrate deploy       # or: npx prisma migrate dev
 SEED_ADMIN_EMAIL=you@example.org SEED_ADMIN_PASSWORD='a-long-password' npm run db:seed
-# optional, to try the analytics with fake data:  SEED_DEMO=true npm run db:seed   (demo PIN 1234, members DEMO-01…)
+# optional, fake attendance history for testing:  SEED_DEMO=true npm run db:seed
 npm run dev                     # http://localhost:3000 · admin at /admin
 ```
 
@@ -66,28 +64,28 @@ See **[docs/DEPLOY-COOLIFY.md](docs/DEPLOY-COOLIFY.md)**. In short: create a Pos
 
 ## How attendance works
 
-1. **Admin → Meetings & QR → "+ Next Sunday's meeting"** (or create any meeting).
-2. **Generate QR code** for an attendance window (for example 4:30 PM → 6:30 PM).
-3. **Show QR on projector** opens a full-screen view with a live count. A printable sheet is also available.
-4. The member scans with their phone camera. The page opens and shows the meeting, today's date and time, and the attendance state.
-5. **First time:** member ID + PIN, with "Remember this phone" ticked. **After that:** one tap, "I'm here". The end-to-end test measured about 3 seconds.
-6. The record is stored once per member per meeting, enforced by a database unique constraint. Re-scanning shows "Already checked in".
+There is **one permanent QR code**. It never changes, so print it once (**Admin → Attendance → Print poster**) and put it up every Sunday, or share the link in the WhatsApp group.
 
-Security: each session token is 256-bit random and tied to one meeting. It expires when the window closes, an admin can revoke it, and opening a new window revokes the old code. PINs are bcrypt-hashed, and generated PINs have 6 digits. Five wrong tries lock the member for 15 minutes; the counter is atomic, so parallel guessing doesn't help. Rate limits apply per IP (the proxy-set address, not a spoofable header) and per member number. Error messages never reveal whether a member number or admin email exists. An apology recorded in advance is upgraded to *present* if the member then scans in. Typing someone else's name doesn't work: a check-in needs that member's own PIN or remembered phone. Officers can still **record manually** (present, excused or make-up, with a reason), and every manual record is audited.
+1. Someone scans the code. It opens **`/attend`**, a short form on the website.
+2. They answer:
+   - member of RC Gayaza, or guest
+   - Rotarian, or Rotaractor
+   - if a guest, which club (a searchable list of about 570 Rotary and Rotaract clubs in Districts 9213 and 9214; any club can be typed in)
+   - full name, email and phone (at least one of the last two)
+3. The sign-in is recorded against **that day's fellowship**, which is created automatically. Fellowship is every Sunday; a sign-in on another day goes to a "Club gathering" for that day. If the club has published an event for that day, the meeting takes its title.
+4. Signing in twice on the same day (same email or phone) updates the first entry instead of adding a duplicate.
+5. The phone remembers the person's answers, so next Sunday it's one tap.
 
-Set PINs in **Admin → Members → (member) → Attendance PIN**. Leave the field blank to generate one. The PIN is shown once.
+Scanning from outside the venue is allowed on purpose. There are no PINs or logins for members.
 
-**Member IDs:** the seed gives officers placeholder IDs (`RCG-001` …). Replace them with Rotary member IDs or the club's own numbers before issuing PINs.
+When a member's email or phone matches the **Members & board** directory, the sign-in is linked to their record.
 
-## Analytics
-
-`/admin/attendance` understands Rotary years (1 July – 30 June) and stores a `rotaryYear` with each meeting, so editing old meetings never mixes up years. A member counts as *available* for a meeting from their **join date** until their **left date**. Set *Left the club on* when someone leaves, so historical percentages stay fair. Apologies (*excused*) count in the denominator; change this in `src/lib/analytics.ts` if your club excludes them.
-
-* **Headline numbers:** total members, active members, meetings held, average attendance, this month, this Rotary year.
-* **Charts:** attendance over time (line), attendance by meeting (stacked: present / guests / excused), member attendance rate (horizontal bars), monthly attendance, and a comparison by Rotary year.
-* **Tables:** by meeting (present, guests, excused, absent, %) and by member (attended, available, %, last attended).
-* **Filters:** date range, Rotary year, meeting, member, attendance status (including *absent*).
-* **Export:** CSV, or Excel-friendly CSV (UTF-8 BOM and CRLF line endings). Cells are guarded against formula injection.
+**Admin → Attendance** shows:
+- the QR code, with a printable poster and an SVG download
+- a list of fellowships with members, guests, Rotarians and Rotaractors for each
+- a chart of the most recent fellowships
+- a page per fellowship, where you can add someone by hand, remove an entry or rename the meeting
+- an Excel-friendly CSV export, for everything or for one fellowship
 
 ## Event & content discovery
 
@@ -114,13 +112,13 @@ The scheduler runs inside the app every `INGEST_INTERVAL_HOURS` (default 12) whe
 | Editor | Stories, projects, events, DG visits, media, Discovered Online |
 | Attendance manager | Meetings and attendance only |
 
-Important actions (logins, saves, deletes, approvals, PIN resets, exports, manual attendance) are written to the **audit log**.
+Important actions (logins, saves, deletes, approvals, exports, manual attendance) are written to the **audit log**.
 
 ## Brand
 
 * Rotary Royal Blue `#17458F`, Rotary Gold `#F7A81B` and Azure `#0067C8`, with warm editorial neutrals and a Gayaza *murram* red used only for "roots" lines.
-* Fonts are self-hosted (no Google Fonts call): Fraunces (display) and Open Sans (body; Rotary's recommended web substitute).
-* **The Rotary wheel and Masterbrand Signature are never redrawn.** Until the official **club logo** is uploaded, the header shows a neutral text lockup. Download the club logo from Rotary's Brand Center and upload it unchanged under **Admin → Clubs → Rotary Club of Gayaza → Official club logo**, or set `NEXT_PUBLIC_CLUB_LOGO`.
+* Fonts are self-hosted (no Google Fonts call): Libre Baskerville for headlines and Montserrat for labels and body text.
+* The official **Rotary Club of Gayaza** logo (`public/brand/rc-gayaza-logo.png`, from the Brand Center files the club supplied) is used unchanged on white backgrounds. On dark backgrounds the site uses plain text instead of recolouring the mark. The Rotary wheel is never redrawn.
 
 ## Project structure
 

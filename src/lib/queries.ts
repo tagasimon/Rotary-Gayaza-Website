@@ -3,6 +3,7 @@ import type { Prisma, EventScope } from "@prisma/client";
 import { db } from "./db";
 import { cached } from "./cache";
 import { visitStatuses } from "./dg";
+import { localParts } from "./time";
 
 const PUB = "PUBLISHED" as const;
 
@@ -143,3 +144,32 @@ export const getMapPoints = () =>
     for (const e of events) pts.push({ kind: "event", title: e.title, subtitle: e.venue ?? undefined, href: `/events/${e.slug}`, lat: e.latitude!, lng: e.longitude! });
     return pts;
   });
+
+export const getSponsors = () =>
+  cached("sponsors", () => db.sponsor.findMany({ where: { status: PUB }, orderBy: [{ order: "asc" }, { name: "asc" }] }));
+
+export const getPress = () =>
+  cached("press", () => db.pressMention.findMany({ where: { status: PUB }, orderBy: [{ date: { sort: "desc", nulls: "last" } }, { order: "asc" }] }));
+
+/**
+ * Fellowship is every Sunday. Returns the next one (today, if it's Sunday and not yet over),
+ * enriched with any approved club event the club has published for that Sunday.
+ */
+export async function getNextFellowship() {
+  const club = await getHomeClub();
+  const now = new Date();
+  const p = localParts(now);
+  const dow = new Date(`${p.ymd}T12:00:00+03:00`).getUTCDay();
+  let add = (7 - dow) % 7;
+  if (add === 0 && p.hh >= 20) add = 7;
+  const day = new Date(new Date(`${p.ymd}T00:00:00+03:00`).getTime() + add * 864e5);
+  const dayEnd = new Date(day.getTime() + 864e5);
+  const event = await db.event.findFirst({
+    where: { status: "APPROVED", scope: "CLUB", startsAt: { gte: day, lt: dayEnd } },
+    orderBy: [{ featured: "desc" }, { startsAt: "asc" }],
+  });
+  const [hh, mm] = (() => { const m = (club.meetingTime ?? "5:00 PM").match(/(\d{1,2}):(\d{2})\s*([AP])M/i); if (!m) return [17, 0]; let h = +m[1] % 12; if (m[3].toUpperCase() === "P") h += 12; return [h, +m[2]]; })();
+  const ymd = localParts(day).ymd;
+  const startsAt = event?.startsAt ?? new Date(`${ymd}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00+03:00`);
+  return { date: day, startsAt, venue: event?.venue ?? club.venue, event };
+}

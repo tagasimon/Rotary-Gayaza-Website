@@ -7,7 +7,6 @@ import { toFormValues, fieldDefault } from "@/lib/admin/parse";
 import { PageTitle, Badge } from "@/components/admin/ui";
 import { ResourceForm } from "@/components/admin/ResourceForm";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
-import { PinPanel } from "@/components/admin/PinPanel";
 import { saveResource, deleteResource } from "../actions";
 import { formatDateTime } from "@/lib/time";
 
@@ -48,7 +47,6 @@ export default async function ResourceEdit({ params }: { params: Promise<{ resou
         <ResourceForm fields={res.fields} values={values} relationOptions={relationOptions} action={saveResource.bind(null, res.key, isNew ? null : id)} mediaUrls={media.map((m) => m.url)} />
         {!isNew && (
           <aside className="space-y-4">
-            {res.key === "members" && <PinPanel memberId={id} hasPin={!!row.pinHash} pinSetAt={row.pinSetAt ? formatDateTime(row.pinSetAt) : null} />}
             <div className="card p-4 text-xs text-muted">
               <p>Created {formatDateTime(row.createdAt)}</p>
               <p className="mt-1 break-all">ID {row.id}</p>

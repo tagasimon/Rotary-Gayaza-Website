@@ -8,7 +8,7 @@ import { hostOf } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Our Impact", description: "Documented impact of the Rotary Club of Gayaza: health outreach, road safety, youth leadership and more — each figure with its source and period.", alternates: { canonical: "/impact" } };
 
-const CATEGORY_ORDER = ["Health", "Education", "Youth", "Community Development", "Road Safety", "Environment", "Economic Empowerment", "Cancer / Fundraising", "Leadership"];
+const CATEGORY_ORDER = ["Health", "Water & Sanitation", "Education", "Youth", "Community Development", "Road Safety", "Environment", "Economic Empowerment", "Cancer / Fundraising", "Leadership"];
 
 export default async function Impact() {
   const [metrics, projects] = await Promise.all([getMetrics(false), getProjects()]);

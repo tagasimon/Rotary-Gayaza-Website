@@ -11,7 +11,7 @@ export default async function AdminLogin() {
         <h1 className="display mt-2 text-3xl">Club admin</h1>
         <p className="mt-1 text-sm text-muted">For officers who manage the website, members and attendance.</p>
         <div className="mt-6"><LoginForm /></div>
-        <p className="mt-6 text-center text-xs text-muted">Members checking attendance: <a className="underline" href="/member/login">member portal</a></p>
+        <p className="mt-6 text-center text-xs text-muted">Signing in to fellowship? Use the <a className="underline" href="/attend">attendance form</a>.</p>
       </div>
     </div>
   );

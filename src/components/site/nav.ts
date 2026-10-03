@@ -1,15 +1,15 @@
 export const PRIMARY_NAV = [
-  { href: "/our-story", label: "Our Story" },
-  { href: "/impact", label: "Impact" },
-  { href: "/projects", label: "Projects" },
-  { href: "/rotary-family", label: "Rotary Family" },
+  { href: "/our-story", label: "About" },
+  { href: "/projects", label: "Our work" },
   { href: "/events", label: "Events" },
-  { href: "/stories", label: "Stories" },
+  { href: "/rotary-family", label: "Rotary family" },
+  { href: "/stories", label: "News" },
+  { href: "/contact", label: "Contact" },
 ];
 export const SECONDARY_NAV = [
-  { href: "/district-governor", label: "Governor's Visits" },
+  { href: "/impact", label: "Impact" },
+  { href: "/district-governor", label: "Governor's visits" },
   { href: "/leadership", label: "Leadership" },
-  { href: "/members", label: "Our People" },
   { href: "/gallery", label: "Photographs" },
-  { href: "/contact", label: "Contact" },
+  { href: "/attend", label: "Fellowship sign-in" },
 ];

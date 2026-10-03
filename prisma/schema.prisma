@@ -652,6 +652,13 @@ model AttendanceRecord {
   meeting     Meeting            @relation(fields: [meetingId], references: [id], onDelete: Cascade)
   memberId    String?
   member      Member?            @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  // Self check-in form (permanent QR): who signed in
+  name        String?
+  email       String?
+  phone       String?
+  isGuest     Boolean            @default(false)
+  affiliation String? // ROTARIAN | ROTARACTOR
+  clubName    String? // the visitor's club, for guests
   guestName   String?
   guestPhone  String?
   guestClub   String?
@@ -667,6 +674,8 @@ model AttendanceRecord {
 
   @@unique([meetingId, memberId])
   @@index([memberId])
+  @@index([meetingId, email])
+  @@index([meetingId, phone])
 }
 
 // ───────────────────────── discovery & ops ─────────────────────────
@@ -736,4 +745,37 @@ model Setting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+// ───────────────────────── sponsors & press ─────────────────────────
+
+model Sponsor {
+  id          String        @id @default(cuid())
+  name        String
+  url         String?
+  logoUrl     String?
+  description String?
+  order       Int           @default(0)
+  status      ContentStatus @default(PUBLISHED)
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model PressMention {
+  id          String        @id @default(cuid())
+  title       String
+  titleEnglish String?
+  outlet      String
+  url         String        @unique
+  kind        String        @default("article") // article | video | radio
+  language    String?
+  date        DateTime?
+  summary     String?
+  imageUrl    String?
+  order       Int           @default(0)
+  status      ContentStatus @default(PUBLISHED)
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }

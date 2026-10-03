@@ -1,23 +1,24 @@
 import Link from "next/link";
 
 /**
- * Club identity. If the official club logo (from Rotary Brand Center) is configured via
- * Club.logoUrl or NEXT_PUBLIC_CLUB_LOGO, it is shown unchanged. Otherwise a neutral text
- * lockup is used — we never redraw the Rotary wheel or Masterbrand Signature.
+ * Official club logo (Rotary Brand Center "Rotary Club of Gayaza" lockup), used unchanged on
+ * light backgrounds. On dark backgrounds we use a plain text name rather than recolouring the mark.
  */
+export const CLUB_LOGO = "/brand/rc-gayaza-logo.png";
+
 export function Wordmark({ logoUrl, tone = "dark" }: { logoUrl?: string | null; tone?: "dark" | "light" }) {
-  const logo = logoUrl || process.env.NEXT_PUBLIC_CLUB_LOGO;
+  if (tone === "light") {
+    return (
+      <Link href="/" className="inline-block leading-none text-white" aria-label="Rotary Club of Gayaza — home">
+        <span className="block font-sans text-[0.62rem] font-bold uppercase tracking-[0.3em] text-white/60">Rotary Club of</span>
+        <span className="display mt-1 block text-[1.6rem]">Gayaza</span>
+      </Link>
+    );
+  }
   return (
-    <Link href="/" className="group inline-flex items-center gap-3" aria-label="Rotary Club of Gayaza — home">
-      {logo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logo} alt="Rotary Club of Gayaza" className="h-10 w-auto sm:h-12" />
-      ) : (
-        <span className={`leading-none ${tone === "light" ? "text-white" : "text-royal"}`}>
-          <span className={`block text-[0.62rem] font-semibold uppercase tracking-[0.28em] ${tone === "light" ? "text-gold" : "text-ink-2"}`}>Rotary Club of</span>
-          <span className="display block text-[1.7rem] font-semibold tracking-tight">Gayaza</span>
-        </span>
-      )}
+    <Link href="/" className="inline-flex items-center" aria-label="Rotary Club of Gayaza — home">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={logoUrl || process.env.NEXT_PUBLIC_CLUB_LOGO || CLUB_LOGO} alt="Rotary Club of Gayaza" width={186} height={75} className="h-11 w-auto sm:h-[52px]" />
     </Link>
   );
 }

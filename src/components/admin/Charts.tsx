@@ -35,14 +35,15 @@ export function AttendanceOverTime({ data }: { data: { label: string; pct: numbe
 }
 
 export function AttendanceByMeeting({ data }: { data: { label: string; present: number; guests: number; excused: number }[] }) {
+  const showExcused = data.some((d) => d.excused > 0);
   return (
-    <Frame title="Attendance by meeting" desc="Members present, guests and apologies (most recent meetings)">
+    <Frame title="Attendance by fellowship" desc="Members and guests who signed in (most recent fellowships)">
       <BarChart data={data} margin={{ top: 8, right: 12, left: -18, bottom: 0 }} barCategoryGap="18%">
         {GRID}<XAxis dataKey="label" {...AXIS} minTickGap={16} /><YAxis {...AXIS} allowDecimals={false} />
         <Tooltip {...tip} /><Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" />
-        <Bar dataKey="present" name="Present" stackId="a" fill={SERIES.present} stroke="#fff" strokeWidth={2} />
-        <Bar dataKey="guests" name="Guests" stackId="a" fill={SERIES.guests} stroke="#fff" strokeWidth={2} />
-        <Bar dataKey="excused" name="Excused" stackId="a" fill={SERIES.excused} stroke="#fff" strokeWidth={2} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="present" name="Members" stackId="a" fill={SERIES.present} stroke="#fff" strokeWidth={2} />
+        <Bar dataKey="guests" name="Guests" stackId="a" fill={SERIES.guests} stroke="#fff" strokeWidth={2} radius={showExcused ? 0 : [4, 4, 0, 0]} />
+        {showExcused && <Bar dataKey="excused" name="Excused" stackId="a" fill={SERIES.excused} stroke="#fff" strokeWidth={2} radius={[4, 4, 0, 0]} />}
       </BarChart>
     </Frame>
   );

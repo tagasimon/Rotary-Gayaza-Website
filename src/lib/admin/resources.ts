@@ -41,7 +41,7 @@ const CONTENT_STATUS = ["DRAFT", "PENDING_REVIEW", "PUBLISHED", "ARCHIVED"] as c
 const EVENT_STATUS = ["PENDING_REVIEW", "APPROVED", "REJECTED", "ARCHIVED"] as const;
 const VERIFICATION = [["VERIFIED", "Verified — public source linked"], ["CLUB_RECORD", "Club record — awaiting confirmation"], ["NEEDS_CONFIRMATION", "Needs confirmation / conflicting"]] as const;
 const AREAS = ["Peacebuilding and conflict prevention", "Disease prevention and treatment", "Water, sanitation and hygiene", "Maternal and child health", "Basic education and literacy", "Community economic development", "The environment", "Youth leadership", "Other"] as const;
-const IMPACT = ["Health", "Education", "Youth", "Community Development", "Road Safety", "Environment", "Economic Empowerment", "Cancer / Fundraising", "Leadership"] as const;
+const IMPACT = ["Health", "Water & Sanitation", "Education", "Youth", "Community Development", "Road Safety", "Environment", "Economic Empowerment", "Cancer / Fundraising", "Leadership"] as const;
 
 const provenance: Field[] = [
   { name: "verification", label: "Verification", type: "select", options: VERIFICATION, section: "Provenance", help: "Never publish an invented fact. Link a public source, or mark it as a club record awaiting confirmation." },
@@ -184,12 +184,12 @@ export const RESOURCES: Resource[] = [
   },
   {
     key: "members", model: "member", label: "Members", singular: "Member", perm: "members", titleField: "fullName",
-    columns: ["memberNumber", "fullName", "rotaryRole", "status", "publicProfile", "pinSetAt"], search: ["fullName", "memberNumber", "email", "phone"],
+    columns: ["fullName", "rotaryRole", "status", "email", "phone", "showOnLeadership"], search: ["fullName", "memberNumber", "email", "phone"],
     orderBy: [{ roleOrder: "asc" }, { fullName: "asc" }], statusOptions: ["ACTIVE", "HONORARY", "INACTIVE", "LEFT"],
-    help: "Private contact details never appear publicly unless 'Show contact publicly' is ticked. Set a PIN so the member can check in by QR.",
+    help: "The club directory. Email and phone also link a member's Sunday sign-ins to their record. Contact details never appear publicly unless 'Show contact publicly' is ticked.",
     fields: [
       { name: "fullName", label: "Full name", type: "text", required: true },
-      { name: "memberNumber", label: "Member ID", type: "text", required: true, help: "Rotary member ID or club number. Used to check in." },
+      { name: "memberNumber", label: "Member ID", type: "text", required: true, help: "Rotary member ID or the club's own number." },
       { name: "status", label: "Membership status", type: "select", options: ["ACTIVE", "HONORARY", "INACTIVE", "LEFT"] },
       { name: "joinDate", label: "Join date", type: "date" },
       { name: "leftAt", label: "Left the club on", type: "date", help: "Set when a member leaves, so past attendance percentages stay accurate." },
@@ -337,6 +337,37 @@ export const RESOURCES: Resource[] = [
       { name: "order", label: "Order in album", type: "int" },
       { name: "status", label: "Status", type: "select", options: CONTENT_STATUS },
       { name: "sourceUrl", label: "Source URL", type: "url" },
+    ],
+  },
+  {
+    key: "sponsors", model: "sponsor", label: "Sponsors", singular: "Sponsor", perm: "projects", titleField: "name",
+    columns: ["name", "url", "order", "status"], search: ["name"], orderBy: [{ order: "asc" }, { name: "asc" }], statusOptions: CONTENT_STATUS, publicPath: () => "/#sponsors-h",
+    help: "Shown on the homepage. Upload a logo for a cleaner look; without one, the name is shown.",
+    fields: [
+      { name: "name", label: "Name", type: "text", required: true, wide: true },
+      { name: "url", label: "Website", type: "url" },
+      { name: "status", label: "Status", type: "select", options: CONTENT_STATUS },
+      { name: "logoUrl", label: "Logo", type: "image", wide: true },
+      { name: "description", label: "Short note (optional)", type: "textarea", wide: true },
+      { name: "order", label: "Order", type: "int" },
+    ],
+  },
+  {
+    key: "press", model: "pressMention", label: "Media appearances", singular: "Media appearance", perm: "stories", titleField: "title",
+    columns: ["title", "outlet", "kind", "date", "status"], search: ["title", "outlet"], orderBy: [{ date: "desc" }], statusOptions: CONTENT_STATUS, publicPath: () => "/#press-h",
+    help: "Newspaper articles, TV and radio features. Link to the original — never copy the article itself.",
+    fields: [
+      { name: "title", label: "Headline (as published)", type: "text", required: true, wide: true },
+      { name: "titleEnglish", label: "English translation (if not in English)", type: "text", wide: true },
+      { name: "outlet", label: "Outlet", type: "text", required: true, help: "e.g. Bukedde, New Vision, Top TV" },
+      { name: "url", label: "Link", type: "url", required: true },
+      { name: "kind", label: "Type", type: "select", options: [["article", "Article"], ["video", "Video / TV"], ["radio", "Radio"]] },
+      { name: "language", label: "Language", type: "text" },
+      { name: "date", label: "Date", type: "date" },
+      { name: "status", label: "Status", type: "select", options: CONTENT_STATUS },
+      { name: "summary", label: "One-line summary", type: "textarea", wide: true },
+      { name: "imageUrl", label: "Image", type: "image" },
+      { name: "order", label: "Order", type: "int" },
     ],
   },
 ];

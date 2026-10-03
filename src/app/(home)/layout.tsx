@@ -8,7 +8,7 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
   const club = await getHomeClub();
   return (
     <>
-      <Header logoUrl={club.logoUrl} overlay />
+      <Header logoUrl={club.logoUrl} />
       <main id="main">{children}</main>
       <Footer club={club} />
     </>

@@ -486,8 +486,114 @@ async function main() {
     console.log("  ! No admin user yet. Run `npm run admin:create` (or set SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD).");
   }
 
+  await seedOctober2026(gayaza.id);
   if (process.env.SEED_DEMO === "true") await seedDemo();
   console.log("Done.");
+}
+
+/**
+ * Content supplied by the club administrator on 3 Oct 2026 (club records) plus two verified press
+ * items. Every write is create-if-missing, so re-running never overwrites edits made in the admin.
+ */
+async function seedOctober2026(gayazaId: string) {
+  const CLUB_REC = { verification: "CLUB_RECORD" as const, sourceLabel: SRC.club.label };
+  const BUKEDDE = { label: "Bukedde, 29 Sep 2026", url: "https://www.bukedde.co.ug/amawulire/BUK_162097_092026/asiimye-bannalotale-ye-gayaza-okuyambako-gavt" };
+
+  // Clubs mothered by RC Gayaza
+  const mothered: Array<[string, string, string]> = [
+    ["rotaract-gayaza", "Rotaract Club of Gayaza", "Rotaract · Gayaza"],
+    ["rotaract-gayaza-football", "Rotaract Club of Gayaza Football", "Rotaract · Gayaza Football"],
+    ["rotaract-manyangwa-football", "Rotaract Club of Manyangwa Football", "Rotaract · Manyangwa Football"],
+    ["rotaract-bugema", "Rotaract Club of Bugema", "Rotaract · Bugema"],
+  ];
+  for (const [slug, name, shortName] of mothered) {
+    const c = await db.club.upsert({ where: { slug }, update: {}, create: { slug, name, shortName, type: "ROTARACT", district: "9213", description: `A Rotaract club mothered by the Rotary Club of Gayaza.`, ...CLUB_REC } });
+    await db.clubRelationship.upsert({
+      where: { parentClubId_childClubId_relationshipType: { parentClubId: gayazaId, childClubId: c.id, relationshipType: "MOTHER_CLUB" } },
+      update: {},
+      create: { parentClubId: gayazaId, childClubId: c.id, relationshipType: "MOTHER_CLUB", description: `RC Gayaza is the mother club of the ${name}.`, order: 10, ...CLUB_REC },
+    });
+  }
+  await db.discoveredItem.updateMany({ where: { dedupeKey: { in: ["research:rotaract-gayaza", "research:gayaza-football"] }, status: "NEW" }, data: { status: "APPROVED", reviewedAt: new Date() } });
+  await db.impactMetric.updateMany({ where: { value: "3", label: "youth clubs whose chartering we supported" }, data: { value: "7", numericValue: 7, label: "Rotaract and Interact clubs mothered or supported", period: "Since 2022" } });
+
+  // Sponsors
+  const sponsors: Array<[string, string | null, number]> = [
+    ["Peoples Medical Hospital", "https://peoplesmedicalhospital.com/", 1],
+    ["St Mark's Schools Kayunga", "https://stmarkschools.com/", 2],
+    ["St. Eliza Pharmacy & Diagnostic Center, Gayaza", null, 3],
+    ["Niyo Garage", "https://niyogarage.com/", 4],
+  ];
+  for (const [name, url, order] of sponsors) {
+    if (!(await db.sponsor.findFirst({ where: { name } }))) await db.sponsor.create({ data: { name, url, order } });
+  }
+
+  // Media appearances
+  const press = [
+    { url: BUKEDDE.url, title: "Asiimye bannalotale y'e Gayaza okuyambako Gavt okutuusa empeereza ku bantu", titleEnglish: "Gayaza Rotarians praised for helping government bring services to the people",
+      outlet: "Bukedde", kind: "article", language: "Luganda", date: EAT("2026-09-29T12:00:00"), order: 1,
+      summary: "Kasangati RDC James Kalisema inspected the clean-water project the club is building at Gayaza C/U Primary School (Kaddongo)." },
+    { url: "https://www.youtube.com/watch?v=1OuH4yiCUI0", title: "Agookya okulwanyisa obubenje mu ggwanga", outlet: "Top TV Uganda", kind: "video", language: "Luganda", order: 2,
+      summary: "A Top TV Uganda feature on the fight against road accidents." },
+    { url: SRC.newVision2022.url, title: "Rotary Club of Gayaza joins thousands in fight against cancer", outlet: "New Vision", kind: "article", language: "English", date: EAT("2022-09-04T12:00:00"), order: 3,
+      summary: "The club took part in the 2022 Rotary Cancer Run." },
+  ];
+  for (const m of press) await db.pressMention.upsert({ where: { url: m.url }, update: {}, create: m });
+
+  // Projects documented in the Bukedde report
+  const projects: Prisma.ProjectCreateInput[] = [
+    {
+      slug: "kaddongo-clean-water",
+      title: "Clean water for Gayaza C/U Primary School (Kaddongo)",
+      summary: "Nine taps for the school and two for the neighbouring village, supplied free of charge from a 10,000-litre tank.",
+      action: "The club is installing nine taps at Gayaza C/U Primary School, known as Kaddongo, and two taps for the surrounding village. The water is drawn from underground into a 10,000-litre tank that feeds the taps. Kasthew Construction Ltd is carrying out the works.",
+      people: "Pupils and staff of Gayaza C/U Primary School, and residents of the neighbouring village.",
+      result: "Kasangati RDC James Kalisema inspected the works in September 2026 and thanked the club. The contractor expects completion in October 2026.",
+      dateLabel: "September 2026", startDate: EAT("2026-09-27T12:00:00"), rotaryYear: "2026-27", location: "Kaddongo, Gayaza",
+      areaOfFocus: "Water, sanitation and hygiene", impactCategory: "Water & Sanitation", projectType: "Clean water", peopleReached: "11 taps",
+      partners: [], outcomes: ["9 taps at the school", "2 taps for the village", "10,000-litre storage tank"], projectStatus: "Ongoing", featured: true,
+      verification: "VERIFIED", sourceLabel: BUKEDDE.label, sourceUrl: BUKEDDE.url, status: "PUBLISHED", club: { connect: { id: gayazaId } },
+    },
+    {
+      slug: "kiwenda-clean-water",
+      title: "Clean water for Kiwenda and Springfield Junior School",
+      summary: "An earlier project that brought clean water to residents of Kiwenda, Nansana Municipality, and to Springfield Junior School.",
+      action: "The club provided clean water to residents of Kiwenda in Nansana Municipality and to Springfield Junior School, Kiwenda.",
+      dateLabel: "Earlier project", location: "Kiwenda, Nansana", areaOfFocus: "Water, sanitation and hygiene", impactCategory: "Water & Sanitation", projectType: "Clean water",
+      partners: [], outcomes: [], projectStatus: "Completed",
+      verification: "VERIFIED", sourceLabel: BUKEDDE.label, sourceUrl: BUKEDDE.url, status: "PUBLISHED", club: { connect: { id: gayazaId } },
+    },
+  ];
+  for (const p of projects) await db.project.upsert({ where: { slug: p.slug }, update: {}, create: p });
+
+  if (!(await db.timelineEntry.findFirst({ where: { title: "Clean water for Kaddongo" } }))) {
+    await db.timelineEntry.create({ data: { date: EAT("2026-09-27T00:00:00"), dateLabel: "September 2026", title: "Clean water for Kaddongo", kind: "PROJECT", chapter: "where-we-are-going",
+      description: "The club installs taps for Gayaza C/U Primary School and the neighbouring village; the Kasangati RDC inspects the works.", linkUrl: "/projects/kaddongo-clean-water",
+      verification: "VERIFIED", sourceLabel: BUKEDDE.label, sourceUrl: BUKEDDE.url } });
+  }
+
+  // Next fellowship — Sunday 4 October 2026
+  await db.event.upsert({
+    where: { slug: "sustaining-the-engine-of-impact-2026-10-04" },
+    update: {},
+    create: {
+      slug: "sustaining-the-engine-of-impact-2026-10-04",
+      title: "Sustaining the Engine of Impact: Deep reflection and intentional resilience",
+      description:
+        "Every Rotary journey is built on moments of service, growth, resilience and impact.\n\n" +
+        "The Rotary Club of Gayaza, jointly with the Rotaract Clubs of Gayaza, Gayaza Football, Manyangwa Football, Gayaza Technical, Pere Cadet and Bugema, invites you to an afternoon of deep reflection, celebration and renewed purpose as we look back at the milestones that have shaped our journey, and look forward to the road ahead.\n\n" +
+        "It is a time to celebrate what we have achieved, acknowledge the lessons along the way, and ask the important question: **how do we sustain the engine of impact?**\n\n" +
+        "Join us for an inspiring conversation with **PDG Ken Wycliffe Mugisha**, Past District Governor of District 9213, as we reflect on intentional resilience, leadership and service.\n\n" +
+        "- Come celebrate with us.\n- Come reflect on the lessons.\n- Come ready to reignite the engine of impact.\n\n" +
+        "#RotaryEyamba · #RotaryKonyo · Safe Roads Save Lives",
+      type: "FELLOWSHIP", scope: "CLUB",
+      startsAt: EAT("2026-10-04T16:00:00"),
+      venue: "Eriot Recreation Centre", location: "Gayaza", address: "Off Gayaza–Kalagi Road, Gayaza", latitude: 0.4505711, longitude: 32.611057,
+      organiser: "Rotary Club of Gayaza with the Rotaract Clubs of Gayaza, Gayaza Football, Manyangwa Football, Gayaza Technical, Pere Cadet and Bugema",
+      imageUrl: "/events/sustaining-the-engine-of-impact.jpg", featured: true, status: "APPROVED",
+      sourceLabel: SRC.club.label, dedupeKey: "sustaining engine impact|2026-10-04", clubId: gayazaId,
+    },
+  });
 }
 
 /** Clearly-labelled demo data for local testing of attendance analytics. Never enable in production. */

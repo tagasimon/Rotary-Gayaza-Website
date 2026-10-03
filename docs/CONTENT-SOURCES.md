@@ -19,6 +19,17 @@ Research was done on **2 October 2026**. The seed (`prisma/seed.ts`) contains on
 | 60 photographs of the July 2025 visit (used across the site, credited to District 9213) | Same album |
 | Club took part in the **2022 Rotary Cancer Run** | [New Vision, 4 Sep 2022](https://www.newvision.co.ug/category/news/rotary-club-of-gayaza-joins-thousands-in-figh-142481) |
 
+## Added 3 October 2026
+
+* **Mothered by RC Gayaza** (club records): Rotaract Clubs of Gayaza, Gayaza Football, Manyangwa Football and Bugema.
+* **Sponsors** (club records): Peoples Medical Hospital, St Mark's Schools Kayunga, St. Eliza Pharmacy & Diagnostic Center (Gayaza), Niyo Garage.
+* **Media**:
+  * [Bukedde, 29 Sep 2026](https://www.bukedde.co.ug/amawulire/BUK_162097_092026/asiimye-bannalotale-ye-gayaza-okuyambako-gavt) — the New Vision short link redirects to this same article. It is also the source for the **Kaddongo** water project (9 taps at the school, 2 for the village, 10,000-litre tank, Kasthew Construction Ltd, completion expected October 2026) and the earlier **Kiwenda / Springfield Junior School** water project.
+  * [Top TV Uganda video](https://www.youtube.com/watch?v=1OuH4yiCUI0), "Agookya okulwanyisa obubenje mu ggwanga".
+  * New Vision, 4 Sep 2022, "Rotary Club of Gayaza joins thousands in fight against cancer".
+* **Event:** "Sustaining the Engine of Impact", Sunday 4 Oct 2026, 4:00 PM, Eriot Recreation Centre, from the club's flyer and invitation. Speaker: PDG Ken Wycliffe Mugisha.
+* **Club list** for the guest dropdown: `src/data/clubs.json`, extracted from the club's Rotary and Rotaract club list (Districts 9213 and 9214, duplicates removed), plus Rotaract Clubs of Bugema and Pere Cadet, which the club named but the list didn't include.
+
 ## Club records awaiting confirmation
 
 * Formal meetings began **June 2021**

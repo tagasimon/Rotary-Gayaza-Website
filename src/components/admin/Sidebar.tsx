@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 type Item = { href: string; label: string; badge?: number };
-export function Sidebar({ groups, user }: { groups: { group: string; items: Item[] }[]; user: { name: string; role: string } }) {
+export function Sidebar({ groups, user }: { groups: { group: string; collapsed?: boolean; items: Item[] }[]; user: { name: string; role: string } }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const active = (h: string) => (h === "/admin" ? path === "/admin" : path.startsWith(h));
@@ -16,13 +16,12 @@ export function Sidebar({ groups, user }: { groups: { group: string; items: Item
       </div>
       <aside className={`${open ? "block" : "hidden"} w-full shrink-0 bg-ink text-white/80 lg:sticky lg:top-0 lg:block lg:h-svh lg:w-60 lg:overflow-y-auto`}>
         <div className="hidden px-5 pb-4 pt-6 lg:block">
-          <Link href="/admin" className="block leading-none"><span className="block text-[0.55rem] font-semibold uppercase tracking-[0.28em] text-gold">Rotary Club of</span><span className="display text-2xl text-white">Gayaza</span></Link>
+          <Link href="/admin" className="block leading-none"><span className="block text-[0.55rem] font-semibold uppercase tracking-[0.28em] text-white/50">Rotary Club of</span><span className="display text-2xl text-white">Gayaza</span></Link>
           <p className="mt-1 text-xs text-white/40">Club admin</p>
         </div>
         <nav aria-label="Admin" className="px-3 pb-6">
-          {groups.map((g) => (
-            <div key={g.group} className="mt-4">
-              <p className="px-2 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white/35">{g.group}</p>
+          {groups.map((g) => {
+            const list = (
               <ul className="mt-1">
                 {g.items.map((i) => (
                   <li key={i.href}>
@@ -33,8 +32,14 @@ export function Sidebar({ groups, user }: { groups: { group: string; items: Item
                   </li>
                 ))}
               </ul>
-            </div>
-          ))}
+            );
+            return g.collapsed ? (
+              <details key={g.group} className="mt-4" open={g.items.some((i) => active(i.href))}>
+                <summary className="cursor-pointer list-none px-2 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white/45 hover:text-white">{g.group} ▾</summary>
+                {list}
+              </details>
+            ) : <div key={g.group || "main"} className="mt-2">{list}</div>;
+          })}
           <div className="mt-8 border-t border-white/10 px-2 pt-4 text-xs">
             <p className="text-white">{user.name}</p><p className="text-white/40">{user.role}</p>
             <div className="mt-3 flex gap-3"><Link href="/" className="underline hover:text-white" target="_blank">View site ↗</Link><Link href="/admin/account" className="underline hover:text-white">Account</Link></div>

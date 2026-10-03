@@ -9,7 +9,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   return (
     <>
       <Header logoUrl={club.logoUrl} />
-      <main id="main" className="grain">{children}</main>
+      <main id="main">{children}</main>
       <Footer club={club} />
     </>
   );

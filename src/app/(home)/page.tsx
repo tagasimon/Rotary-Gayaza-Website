@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { getHomeClub, getSections, getMetrics, getProjects, getTimeline, getEvents, getNextBigThing, getPresidents, getLeadership, getStories } from "@/lib/queries";
+import {
+  getHomeClub, getSections, getMetrics, getProjects, getTimeline, getEvents, getPresidents, getLeadership,
+  getStoryChapters, getSponsors, getPress, getNextFellowship, getDGVisits,
+} from "@/lib/queries";
 import { buildFamilyNodes } from "@/lib/family";
 import { Img } from "@/components/site/Img";
 import { Markdown } from "@/components/site/Markdown";
@@ -7,163 +10,187 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 import { CountUp } from "@/components/site/CountUp";
 import { Countdown } from "@/components/site/Countdown";
 import { FamilyTree } from "@/components/site/FamilyTree";
-import { Timeline } from "@/components/site/Timeline";
-import { ProjectFeature, StoryCard, EventRow } from "@/components/site/Cards";
-import { Reveal, ImageReveal } from "@/components/site/Reveal";
-import { FollowX } from "@/components/site/FollowX";
+import { ProjectListItem, EventRow } from "@/components/site/Cards";
+import { Reveal } from "@/components/site/Reveal";
 import { JsonLd } from "@/components/site/JsonLd";
+import { ContactForm } from "@/app/(site)/contact/ContactForm";
 import { formatDate, formatTime } from "@/lib/time";
-import { SITE_URL, hostOf } from "@/lib/utils";
+import { SITE_URL, excerpt, hostOf } from "@/lib/utils";
+
+const ALBUM = "https://clubrunner.blob.core.windows.net/00000050109/PhotoAlbum/dg-geoffrey-visits-rc-gayaza/";
 
 export default async function Home() {
-  const [club, s, metrics, projects, timeline, ourEvents, districtEvents, communityEvents, next, presidents, leaders, stories, family] = await Promise.all([
+  const [club, s, metrics, projects, timeline, ourEvents, districtEvents, communityEvents, presidents, leaders, chapters, sponsors, press, fellowship, visits, family] = await Promise.all([
     getHomeClub(), getSections("home."), getMetrics(), getProjects(), getTimeline(),
     getEvents("CLUB", { take: 4 }), getEvents("DISTRICT", { take: 4 }), getEvents("COMMUNITY", { take: 4 }),
-    getNextBigThing(), getPresidents(), getLeadership(), getStories(4), buildFamilyNodes(),
+    getPresidents(), getLeadership(), getStoryChapters(), getSponsors(), getPress(), getNextFellowship(), getDGVisits(), buildFamilyNodes(),
   ]);
   const hero = s["home.hero"], who = s["home.who"], join = s["home.join"];
-  const featured = projects.filter((p) => p.featured).slice(0, 3);
+  const started = chapters.find((c) => c.key === "story.where-we-started");
   const current = presidents.find((p) => p.isCurrent) ?? presidents[0];
-  const officers = leaders.filter((m) => m.fullName !== current?.name);
-  const now = new Date();
+  const people = [...leaders].sort((a, b) => a.roleOrder - b.roleOrder);
+  const nextVisit = visits.find((v) => v.visitStatus === "NEXT" || v.visitStatus === "TODAY");
+  const fe = fellowship.event;
+  const featured = projects.filter((p) => p.featured).slice(0, 5);
 
   return (
     <>
       <JsonLd data={{
-        "@context": "https://schema.org", "@type": "NGO", name: club.name, url: SITE_URL(), email: club.email ?? undefined,
+        "@context": "https://schema.org", "@type": "NGO", name: club.name, url: SITE_URL(), email: club.email ?? undefined, logo: `${SITE_URL()}/brand/rc-gayaza-logo.png`,
         sameAs: [club.xUrl, "https://rotaryd9213.org/ClubInfo/gayaza"].filter(Boolean), foundingDate: club.charterDate?.toISOString().slice(0, 10),
         parentOrganization: { "@type": "Organization", name: "Rotary International", url: "https://www.rotary.org" },
         address: { "@type": "PostalAddress", streetAddress: club.address ?? undefined, addressLocality: "Gayaza", addressCountry: "UG" },
-        location: { "@type": "Place", name: club.venue, geo: club.latitude ? { "@type": "GeoCoordinates", latitude: club.latitude, longitude: club.longitude } : undefined },
       }} />
 
-      {/* 1 ── HERO ───────────────────────────────────────────── */}
-      <section className="relative isolate flex min-h-[92svh] items-end overflow-hidden bg-ink text-white" aria-labelledby="hero-title">
-        <Img src={hero?.imageUrl} alt="Members of the Rotary Club of Gayaza planting trees" fill priority sizes="100vw" className="-z-10 object-cover object-[50%_35%]" />
-        <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(15,27,45,.55)_0%,rgba(15,27,45,.15)_35%,rgba(15,27,45,.85)_80%,#0f1b2d_100%)]" />
-        <svg aria-hidden className="absolute bottom-0 left-0 -z-10 h-48 w-full text-soil/60" viewBox="0 0 1440 200" preserveAspectRatio="none">
-          <path d="M0 200 C 240 140, 420 190, 620 150 S 980 80, 1440 120" fill="none" stroke="currentColor" strokeWidth="1.2" />
-          <path d="M0 180 C 300 170, 520 120, 760 140 S 1100 170, 1440 90" fill="none" stroke="currentColor" strokeWidth=".6" />
-        </svg>
-        <div className="wrap pb-40 pt-32 sm:pb-44">
-          <p className="eyebrow text-gold">{hero?.eyebrow ?? `Rotary District ${club.district} · Gayaza, Uganda`}</p>
-          <h1 id="hero-title" className="mt-5 max-w-4xl text-[clamp(3rem,9vw,7.5rem)] font-medium leading-[0.92]">
-            {(hero?.title ?? "Service takes root in Gayaza.").split(" ").map((w, i, arr) => i === arr.length - 1 ? <em key={i} className="text-gold not-italic [font-style:italic]">{w}</em> : <span key={i}>{w} </span>)}
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/85 sm:text-xl">{hero?.body}</p>
-          <div className="mt-9 flex flex-wrap gap-3">
-            <Link href="/contact?interest=join" className="btn btn-gold">Join / get involved</Link>
-            <Link href="/impact" className="btn btn-ghost text-white">See our impact</Link>
-            {next && <Link href={next.href} className="btn btn-ghost text-white">Next: {formatDate(next.date, "short")}</Link>}
-          </div>
+      {/* HERO */}
+      <section className="relative isolate flex min-h-[calc(100svh-78px)] items-center overflow-hidden bg-night text-white" aria-labelledby="hero-title">
+        <Img src={hero?.imageUrl} alt="Members of the Rotary Club of Gayaza planting trees" fill priority sizes="100vw" className="-z-10 object-cover object-[50%_35%] opacity-45" />
+        <div className="wrap py-24">
+          <p className="eyebrow text-white/55">Welcome to the</p>
+          <h1 id="hero-title" className="mt-4 max-w-3xl text-[2.6rem] leading-[1.25] sm:text-[3.6rem]">Rotary Club of Gayaza.</h1>
+          <p className="mt-6 max-w-xl font-sans text-[1.05rem] leading-[1.85] text-white/70">{hero?.body}</p>
+          <nav aria-label="Introduction" className="mt-12 flex flex-wrap gap-x-9 gap-y-3 font-sans">
+            {[["More", "About who we are", "/our-story"], ["View", "Our work", "/projects"], ["Join", "Sunday fellowship", "/contact?interest=visit"]].map(([k, l, h]) => (
+              <Link key={h} href={h} className="group"><span className="mr-2 text-[0.62rem] font-bold uppercase tracking-[0.2em] text-white/40">{k}</span><span className="display text-[1.05rem] text-white group-hover:text-gold">{l}</span></Link>
+            ))}
+          </nav>
         </div>
       </section>
 
-      {/* 2 ── THE NEXT BIG THING ─────────────────────────────── */}
-      {next && (
-        <section aria-labelledby="next-title" className="relative z-10 -mt-24">
-          <div className="wrap">
-            <Link href={next.href} className="group grid gap-6 bg-royal p-6 text-white shadow-[0_30px_60px_-30px_rgba(12,42,92,.8)] ring-1 ring-white/10 transition hover:bg-royal-deep sm:p-8 md:grid-cols-12 md:items-center">
-              <div className="md:col-span-7">
-                <p className="eyebrow flex items-center gap-2 text-gold">
-                  <span className="relative inline-flex h-2.5 w-2.5"><span className="pulse-ring absolute inset-0 rounded-full bg-gold" /><span className="relative h-2.5 w-2.5 rounded-full bg-gold" /></span>
-                  {next.status === "TODAY" ? "Today" : "The next big thing"}
-                </p>
-                <h2 id="next-title" className="mt-3 text-3xl leading-tight sm:text-4xl">{next.title}</h2>
-                <p className="mt-2 text-white/80">{formatDate(next.date, "day")} · {next.timeLabel ?? formatTime(next.date)}{next.venue ? ` · ${next.venue}` : ""}</p>
-              </div>
-              <div className="md:col-span-5 md:justify-self-end"><Countdown to={next.date.toISOString()} /></div>
-            </Link>
+      {/* NEXT FELLOWSHIP */}
+      <section className="border-b border-line" aria-labelledby="next-h">
+        <div className="wrap grid items-center gap-10 py-16 md:grid-cols-12 sm:py-20">
+          <div className="md:col-span-5">
+            {fe?.imageUrl ? (
+              <Link href={`/events/${fe.slug}`} className="block border border-line">
+                <Img src={fe.imageUrl} alt={`Flyer: ${fe.title}`} width={1080} height={1080} className="h-auto w-full" sizes="(min-width: 768px) 40vw, 100vw" />
+              </Link>
+            ) : (
+              <div className="relative aspect-square bg-paper-2"><Img src={`${ALBUM}MCK_5934.jpg`} alt="Club members at a Sunday fellowship" fill sizes="40vw" className="object-cover" /></div>
+            )}
           </div>
-        </section>
-      )}
-
-      {/* 3 ── WHO WE ARE ─────────────────────────────────────── */}
-      <section className="grain py-24 sm:py-32" aria-labelledby="who">
-        <div className="wrap">
-          <SectionHeading id="who" num="01" eyebrow={who?.eyebrow ?? "Who we are"} title={who?.title ?? "Who we are"} />
-          <div className="grid gap-10 md:grid-cols-12">
-            <div className="md:col-span-6 md:col-start-4"><Markdown className="prose-story">{who?.body}</Markdown></div>
-            <aside className="md:col-span-3">
-              <dl className="space-y-5 border-l border-soil/40 pl-5 text-sm">
-                <div><dt className="eyebrow text-muted">Chartered</dt><dd className="display mt-1 text-2xl">{club.charterDateLabel}</dd></div>
-                <div><dt className="eyebrow text-muted">We meet</dt><dd className="mt-1 font-semibold">{club.meetingDay}s, {club.meetingTime}</dd><dd className="text-ink-2">{club.venue}</dd></div>
-                <div><dt className="eyebrow text-muted">District</dt><dd className="mt-1 font-semibold">Rotary District {club.district}</dd></div>
-                <div><dt className="eyebrow text-muted">Motto</dt><dd className="display mt-1 text-xl italic">Service Above Self</dd></div>
-              </dl>
-            </aside>
-          </div>
-        </div>
-      </section>
-
-      {/* 4 ── IMPACT NUMBERS ─────────────────────────────────── */}
-      {metrics.length > 0 && (
-        <section className="border-y border-line bg-paper-2 py-20 sm:py-28" aria-labelledby="impact-h">
-          <div className="wrap">
-            <SectionHeading id="impact-h" num="02" eyebrow="What we have done" title="Evidence, not adjectives." intro="Every number below says when it was counted and where it comes from." />
-            <ul className="grid gap-px overflow-hidden bg-line sm:grid-cols-2 lg:grid-cols-4">
-              {metrics.map((m, i) => (
-                <Reveal as="li" key={m.id} delay={i * 0.08} className="flex flex-col bg-paper-2 p-6 sm:p-8">
-                  <span className="display text-6xl leading-none text-royal sm:text-7xl"><CountUp display={m.value} to={m.numericValue} /></span>
-                  <span className="mt-4 text-lg leading-snug text-ink">{m.label}</span>
-                  <span className="mt-auto pt-6 text-xs text-muted">
-                    {m.period}
-                    {" · "}
-                    {m.sourceUrl ? <a href={m.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-royal">{m.sourceLabel ?? hostOf(m.sourceUrl)} ↗</a> : "Club records"}
-                  </span>
-                </Reveal>
-              ))}
-            </ul>
-            <Link href="/impact" className="link-arrow mt-8">Explore our impact by area</Link>
-          </div>
-        </section>
-      )}
-
-      {/* 5 ── SERVICE STORIES ────────────────────────────────── */}
-      {featured.length > 0 && (
-        <section className="grain py-24 sm:py-32" aria-labelledby="projects-h">
-          <div className="wrap">
-            <SectionHeading id="projects-h" num="03" eyebrow="Project stories" title="The work, up close." intro="The challenge, what members did and who was reached." />
-            <div className="space-y-20 sm:space-y-28">
-              {featured.map((p, i) => <Reveal key={p.id}><ProjectFeature p={p} flip={i % 2 === 1} index={i} /></Reveal>)}
+          <div className="md:col-span-7 md:pl-6">
+            <p className="eyebrow text-royal">Next fellowship · {formatDate(fellowship.date, "day")}</p>
+            <h2 id="next-h" className="mt-3 text-[2rem] leading-[1.2] sm:text-[2.5rem]">{fe ? fe.title.replace(/[.:]$/, "") + "." : "Sunday fellowship."}</h2>
+            <dl className="mt-6 grid gap-4 border-y border-line py-5 font-sans text-sm sm:grid-cols-3">
+              <div><dt className="eyebrow text-muted">When</dt><dd className="mt-1 font-semibold text-ink">{formatDate(fellowship.startsAt, "short")}</dd></div>
+              <div><dt className="eyebrow text-muted">Time</dt><dd className="mt-1 font-semibold text-ink">{formatTime(fellowship.startsAt)}</dd></div>
+              <div><dt className="eyebrow text-muted">Where</dt><dd className="mt-1 font-semibold text-ink">{fellowship.venue}</dd></div>
+            </dl>
+            <p className="body-serif mt-6">{fe?.description ? excerpt(fe.description, 380) : `We meet every ${club.meetingDay} at ${club.meetingTime}. Visitors, Rotaractors and Rotarians from other clubs are always welcome.`}</p>
+            <div className="mt-6"><Countdown to={fellowship.startsAt.toISOString()} tone="dark" /></div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {fe && <Link href={`/events/${fe.slug}`} className="btn btn-dark">Event details</Link>}
+              <Link href="/attend" className="btn btn-line">Sign in on the day</Link>
             </div>
-            <div className="mt-16 text-center"><Link href="/projects" className="btn btn-line">All projects</Link></div>
+            {nextVisit && <p className="mt-6 font-sans text-sm text-muted">Also coming up: <Link href="/district-governor" className="font-semibold text-ink underline">District Governor {nextVisit.governorName}&rsquo;s visit, {formatDate(nextVisit.date, "short")}</Link>.</p>}
           </div>
+        </div>
+      </section>
+
+      {/* ABOUT — split panel */}
+      <section className="grid md:grid-cols-2" aria-labelledby="about-h">
+        <div className="bg-paper-2 px-5 py-20 sm:px-12 lg:px-[max(2.5rem,calc((100vw-1180px)/2+2.5rem))]">
+          <div className="max-w-[520px]">
+            <p className="eyebrow text-royal">About</p>
+            <h2 id="about-h" className="mt-2 text-[2rem]">{who?.title?.replace(/\.$/, "") ?? "Who we are"}.</h2>
+            <Markdown className="mt-6 font-sans text-[1.05rem] leading-[1.85] text-muted [&_p]:mb-5">{who?.body}</Markdown>
+            <dl className="mt-4 space-y-4 font-sans text-sm">
+              <div><dt className="eyebrow text-royal">Chartered</dt><dd className="body-serif">{club.charterDateLabel} · Club ID {club.clubNumber} · Rotary District {club.district}</dd></div>
+              <div><dt className="eyebrow text-royal">Fellowship</dt><dd className="body-serif">Every {club.meetingDay} at {club.meetingTime}, {club.venue}</dd></div>
+              <div><dt className="eyebrow text-royal">Motto</dt><dd className="body-serif">Service Above Self</dd></div>
+            </dl>
+            <div className="mt-10 flex flex-col gap-2 sm:max-w-sm">
+              <Link href="/contact" className="btn btn-grey">Contact the club</Link>
+              <Link href="/our-story" className="btn btn-dark">Read our story</Link>
+            </div>
+          </div>
+        </div>
+        <div className="px-5 py-20 sm:px-12">
+          <div className="max-w-[520px]">
+            <h2 className="text-[2rem]">The founding story.</h2>
+            {started?.body && <p className="lede mt-6">{started.body}</p>}
+            <ol className="mt-10 space-y-6">
+              {timeline.slice(0, 6).map((t) => (
+                <li key={t.id} className="grid grid-cols-[18px_1fr] gap-3">
+                  <span aria-hidden className="mt-[7px] block h-2 w-2 rounded-full bg-royal" />
+                  <div>
+                    <p className="eyebrow text-ink">{t.dateLabel}</p>
+                    <p className="body-serif mt-1">{t.title}. {t.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      {/* OUR WORK — black band */}
+      <section className="relative overflow-hidden bg-black text-white" aria-labelledby="work-h">
+        <div className="grid md:grid-cols-2">
+          <div className="px-5 py-20 sm:px-12 lg:pl-[max(2.5rem,calc((100vw-1180px)/2+2.5rem))]">
+            <p className="eyebrow text-gold">Where we serve</p>
+            <h2 id="work-h" className="mt-2 text-[2rem]">Some of our work.</h2>
+            <ol className="mt-8 space-y-6">
+              {featured.map((p, i) => (
+                <li key={p.id} className="body-serif !text-white/55">
+                  <Link href={`/projects/${p.slug}`} className="text-white hover:text-gold">{i + 1}. {p.title}</Link>
+                  {p.summary ? ` — ${excerpt(p.summary, 150)}` : ""}
+                </li>
+              ))}
+            </ol>
+            <Link href="/projects" className="btn btn-ghost mt-10">All projects</Link>
+          </div>
+          <div className="relative min-h-[360px]">
+            <Img src={`${ALBUM}MCK_5724.jpg`} alt="Members opening a water point" fill sizes="50vw" className="photo-mono object-cover opacity-80" />
+          </div>
+        </div>
+      </section>
+
+      {/* NUMBERS */}
+      {metrics.length > 0 && (
+        <section className="bg-night-2 py-14 text-white" aria-label="Impact in numbers">
+          <ul className="wrap grid grid-cols-2 lg:grid-cols-4">
+            {metrics.slice(0, 4).map((m, i) => (
+              <li key={m.id} className={`px-4 py-6 text-center ${i ? "lg:border-l lg:border-white/10" : ""}`}>
+                <p className="font-sans text-[0.68rem] font-bold uppercase tracking-[0.18em] text-white/85">{m.label}</p>
+                <span aria-hidden className="mx-auto my-3 block h-px w-16 bg-white/20" />
+                <p className="font-sans text-[2.6rem] font-bold leading-none text-gold"><CountUp display={m.value} to={m.numericValue} /></p>
+                <p className="mt-3 font-sans text-[0.68rem] text-white/40">{m.period}{m.sourceUrl ? <> · <a href={m.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-white">{hostOf(m.sourceUrl)}</a></> : " · club records"}</p>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
-      {/* 6 ── ROTARY FAMILY ──────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-ink py-24 text-white sm:py-32" aria-labelledby="family-h">
+      {/* LATEST PROJECTS */}
+      <section className="bg-paper-2 py-24" aria-labelledby="latest-h">
         <div className="wrap">
-          <SectionHeading id="family-h" num="04" tone="light" eyebrow="Our Rotary family" title="One club can create many more." intro="Two clubs helped Gayaza take root. Gayaza is now helping young people start clubs of their own. Service grows." />
-          <FamilyTree nodes={family.nodes} centre={family.centre} />
-          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6 text-sm text-white/60">
-            <p>Relationships are labelled exactly as recorded: <em>mother club</em>, <em>supported</em>, <em>sponsored</em>, <em>mentored</em> or <em>chartered</em>.</p>
-            <Link href="/rotary-family" className="font-semibold text-gold hover:underline">Explore the family →</Link>
+          <SectionHeading id="latest-h" title="Our latest projects." align="center" />
+          <div className="grid gap-x-16 gap-y-14 md:grid-cols-2">
+            {projects.slice(0, 6).map((p) => <Reveal key={p.id}><ProjectListItem p={p} /></Reveal>)}
           </div>
         </div>
       </section>
 
-      {/* 7 ── TIMELINE ───────────────────────────────────────── */}
-      <section className="grain py-24 sm:py-32" aria-labelledby="time-h">
+      {/* ROTARY FAMILY */}
+      <section className="bg-night py-24 text-white" aria-labelledby="family-h">
         <div className="wrap">
-          <SectionHeading id="time-h" num="05" eyebrow="2021 → Today → Next" title="A short history, still being written." />
-          <Timeline items={timeline.map((t) => ({ id: t.id, dateLabel: t.dateLabel, title: t.title, description: t.description, kind: t.kind, href: t.linkUrl, upcoming: t.date > now, pending: t.verification !== "VERIFIED", sourceUrl: t.sourceUrl, sourceLabel: t.sourceLabel }))} />
-          <Link href="/our-story" className="link-arrow mt-4">Read our story</Link>
+          <SectionHeading id="family-h" tone="light" eyebrow="Our Rotary family" title="One club can create many more." intro="Two clubs helped Gayaza take root. Gayaza has since mothered and supported Rotaract and Interact clubs of its own." />
+          <FamilyTree nodes={family.nodes} centre={family.centre} />
+          <Link href="/rotary-family" className="btn btn-ghost mt-10">Explore the family</Link>
         </div>
       </section>
 
-      {/* 8 ── WHAT'S HAPPENING ───────────────────────────────── */}
-      <section className="border-t border-line bg-paper-2 py-24 sm:py-28" aria-labelledby="events-h">
+      {/* EVENTS */}
+      <section className="py-24" aria-labelledby="events-h">
         <div className="wrap">
-          <SectionHeading id="events-h" num="06" eyebrow="What's happening" title="Come and see for yourself." intro="Our own events, the wider District 9213 calendar and Rotary community fellowships, kept separate so you can tell them apart." />
+          <SectionHeading id="events-h" eyebrow="What's happening" title="Come and see for yourself." />
           <div className="grid gap-12 lg:grid-cols-3">
-            {([["Our events", ourEvents, "CLUB"], ["District events", districtEvents, "DISTRICT"], ["Rotary community", communityEvents, "COMMUNITY"]] as const).map(([label, list, key]) => (
+            {([["Our events", ourEvents, "CLUB"], ["District 9213", districtEvents, "DISTRICT"], ["Rotary community", communityEvents, "COMMUNITY"]] as const).map(([label, list, key]) => (
               <div key={key}>
                 <h3 className="eyebrow mb-2 text-royal">{label}</h3>
-                {list.length ? <ul>{list.map((e) => <EventRow key={e.id} e={e} compact />)}</ul> : (
-                  <p className="border-t border-line py-5 text-ink-2">{key === "CLUB" ? `Every ${club.meetingDay} at ${club.meetingTime} — ${club.venue}. Visitors welcome.` : "Nothing listed right now."}</p>
-                )}
+                {list.length ? <ul>{list.map((e) => <EventRow key={e.id} e={e} compact />)}</ul> : <p className="body-serif border-t border-line py-5">{key === "CLUB" ? `Fellowship every ${club.meetingDay} at ${club.meetingTime}, ${club.venue}.` : "Nothing listed right now."}</p>}
               </div>
             ))}
           </div>
@@ -171,74 +198,80 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 9 ── MEET THE PEOPLE ────────────────────────────────── */}
+      {/* PEOPLE */}
       {current && (
-        <section className="grain py-24 sm:py-32" aria-labelledby="people-h">
+        <section className="border-t border-line py-24" aria-labelledby="people-h">
           <div className="wrap">
-            <SectionHeading id="people-h" num="07" eyebrow="Meet the people" title="Led by members, for members." />
-            <div className="grid gap-12 md:grid-cols-12">
-              <div className="md:col-span-5">
-                <ImageReveal className="relative aspect-[4/5] overflow-hidden bg-royal">
-                  {current.photoUrl ? <Img src={current.photoUrl} alt={current.name} fill sizes="40vw" className="object-cover" /> : (
-                    <div className="absolute inset-0 flex flex-col justify-end p-8 text-white">
-                      <span className="display text-[8rem] leading-none text-gold/90">{current.name.split(" ").map((x) => x[0]).join("")}</span>
-                    </div>
-                  )}
-                </ImageReveal>
-              </div>
-              <div className="md:col-span-7 md:pt-6">
-                <p className="eyebrow text-soil">President · {current.rotaryYear}</p>
-                <p className="display mt-3 text-5xl sm:text-6xl">{current.name}</p>
-                {current.message ? <blockquote className="display mt-6 border-l-2 border-gold pl-6 text-2xl italic leading-snug text-ink-2">“{current.message}”</blockquote> : null}
-                <ul className="mt-10 grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                  {officers.slice(0, 8).map((m) => (
-                    <li key={m.id} className="border-t border-line pt-3"><p className="font-semibold">{m.fullName}</p><p className="text-sm text-muted">{m.rotaryRole}</p></li>
+            <SectionHeading id="people-h" eyebrow="Leadership" title="The people." intro={`The ${current.rotaryYear} board of the Rotary Club of Gayaza, led by President ${current.name}.`} />
+            <div className="grid gap-x-16 md:grid-cols-2">
+              {[people.slice(0, Math.ceil(people.length / 2)), people.slice(Math.ceil(people.length / 2))].map((col, ci) => (
+                <ul key={ci} className="relative border-l border-line">
+                  {col.map((m) => (
+                    <li key={m.id} className="relative pb-8 pl-10">
+                      <span aria-hidden className="absolute -left-[13px] top-0 grid h-[26px] w-[26px] place-items-center rounded-full bg-royal font-sans text-[0.6rem] font-bold text-white">{m.fullName.split(" ").map((x) => x[0]).slice(0, 2).join("")}</span>
+                      <p className="font-sans text-[1.05rem] font-bold text-ink">{m.fullName}</p>
+                      <p className="font-sans text-xs font-bold text-muted">{m.rotaryRole}</p>
+                    </li>
                   ))}
                 </ul>
-                <Link href="/leadership" className="link-arrow mt-8">Leadership & past presidents</Link>
-              </div>
+              ))}
             </div>
+            <Link href="/leadership" className="link-arrow">Leadership & past presidents</Link>
           </div>
         </section>
       )}
 
-      {/* 10 ── LATEST STORIES ────────────────────────────────── */}
-      {stories.length > 0 && (
-        <section className="border-t border-line py-24" aria-labelledby="stories-h">
+      {/* PRESS */}
+      {press.length > 0 && (
+        <section className="bg-paper-2 py-24" aria-labelledby="press-h">
           <div className="wrap">
-            <SectionHeading id="stories-h" num="08" eyebrow="Stories of service" title="Told by the people who were there." />
-            <div className="grid gap-12 md:grid-cols-2">{stories.slice(0, 2).map((st, i) => <Reveal key={st.id} delay={i * 0.1}><StoryCard s={st} size="lg" /></Reveal>)}</div>
-            <Link href="/stories" className="link-arrow mt-10">All stories</Link>
-            <div className="mt-16"><FollowX url={club.xUrl ?? undefined} /></div>
+            <SectionHeading id="press-h" title="In the news." align="center" />
+            <ul className="mx-auto grid max-w-5xl gap-x-16 gap-y-12 md:grid-cols-2">
+              {press.map((m) => (
+                <li key={m.id}>
+                  <p className="font-sans text-[0.95rem] font-bold uppercase tracking-[0.04em] text-ink">{m.outlet}{m.date ? ` · ${formatDate(m.date, "short")}` : ""}</p>
+                  <p className="mt-1 font-sans text-[0.68rem] font-bold uppercase tracking-[0.16em] text-royal">{m.kind === "video" ? "Video" : "Article"}{m.language ? ` · ${m.language}` : ""}</p>
+                  <a href={m.url} target="_blank" rel="noopener noreferrer" className="display mt-3 block text-[1.2rem] leading-snug hover:text-royal">{m.title} ↗</a>
+                  {m.titleEnglish && <p className="mt-1 font-sans text-sm italic text-muted">“{m.titleEnglish}”</p>}
+                  {m.summary && <p className="body-serif mt-3">{m.summary}</p>}
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       )}
 
-      {/* 11 ── JOIN ──────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gold py-24 text-ink sm:py-32" aria-labelledby="join-h">
-        <svg aria-hidden className="absolute -right-24 -top-24 h-[480px] w-[480px] text-ink/10" viewBox="0 0 200 200"><path d="M100 200 C100 140 100 120 100 100 M100 100 C 80 70 50 60 20 40 M100 100 C 120 70 150 60 180 40 M100 120 C 70 110 40 115 10 100 M100 120 C 130 110 160 115 190 100 M100 80 C 100 50 95 30 100 0" stroke="currentColor" strokeWidth="1.5" fill="none" /></svg>
-        <div className="wrap relative">
-          <p className="eyebrow text-ink/70">09 — {join?.eyebrow ?? "Get involved"}</p>
-          <h2 id="join-h" className="mt-4 max-w-3xl text-5xl leading-[1.02] sm:text-7xl">{join?.title ?? "There is a seat for you on Sunday."}</h2>
-          {join?.body && <p className="mt-6 max-w-xl text-lg">{join.body}</p>}
-          <ul className="mt-12 grid gap-px bg-ink/15 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              ["Attend a fellowship", `${club.meetingDay}s, ${club.meetingTime} at ${club.venue}.`, "/contact?interest=visit"],
-              ["Support a project", "Fund, supply or show up for a service project.", "/contact?interest=support"],
-              ["Partner with the club", "Schools, businesses, health centres and NGOs.", "/contact?interest=partner"],
-              ["Volunteer", "Lend a skill or a Saturday.", "/contact?interest=volunteer"],
-              ["Learn about Rotary", "What Rotary is and how membership works.", "https://www.rotary.org/en/get-involved/join"],
-              ["Contact the club", club.email ?? "Send us a message.", "/contact"],
-            ].map(([t, d, href]) => (
-              <li key={t} className="bg-gold">
-                <Link href={href} className="group flex h-full flex-col p-6 transition hover:bg-gold-soft">
-                  <span className="display text-2xl">{t}</span>
-                  <span className="mt-2 text-sm text-ink/75">{d}</span>
-                  <span aria-hidden className="mt-6 text-xl transition-transform group-hover:translate-x-1">→</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+      {/* SPONSORS */}
+      {sponsors.length > 0 && (
+        <section className="py-20" aria-labelledby="sponsors-h">
+          <div className="wrap">
+            <SectionHeading id="sponsors-h" eyebrow="With thanks" title="Our sponsors." align="center" intro="Businesses and institutions that make our service possible." />
+            <ul className="grid grid-cols-2 border-l border-t border-line md:grid-cols-4">
+              {sponsors.map((sp) => {
+                const inner = sp.logoUrl
+                  ? // eslint-disable-next-line @next/next/no-img-element
+                    <img src={sp.logoUrl} alt={sp.name} className="mx-auto max-h-16 w-auto object-contain" />
+                  : <span className="display text-center text-[1.05rem] leading-snug text-ink">{sp.name}</span>;
+                return (
+                  <li key={sp.id} className="flex min-h-[140px] items-center justify-center border-b border-r border-line p-6">
+                    {sp.url ? <a href={sp.url} target="_blank" rel="noopener noreferrer" className="block transition-opacity hover:opacity-70">{inner}</a> : inner}
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-6 text-center font-sans text-sm text-muted">Want to support our work? <Link href="/contact?interest=partner" className="font-semibold text-ink underline">Become a sponsor</Link>.</p>
+          </div>
+        </section>
+      )}
+
+      {/* CONTACT */}
+      <section className="relative isolate overflow-hidden bg-[#3a3a3a] py-24 text-white" aria-labelledby="contact-h">
+        <Img src={`${ALBUM}MCK_5934.jpg`} alt="" fill sizes="100vw" className="photo-mono -z-10 object-cover opacity-20" />
+        <div className="wrap max-w-2xl text-center">
+          <p className="eyebrow text-gold">{join?.eyebrow ?? "Get involved"}</p>
+          <h2 id="contact-h" className="mt-3 text-[2rem] leading-[1.3] sm:text-[2.4rem]">{join?.title ?? "There is a seat for you on Sunday."}</h2>
+          {join?.body && <p className="mx-auto mt-5 max-w-xl font-sans leading-[1.85] text-white/65">{join.body}</p>}
+          <div className="mt-10 text-left"><ContactForm tone="dark" /></div>
         </div>
       </section>
     </>
