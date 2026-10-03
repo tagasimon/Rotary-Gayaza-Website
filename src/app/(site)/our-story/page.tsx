@@ -51,7 +51,7 @@ export default async function OurStory() {
           </section>
         );
       })}
-      <section className="bg-ink py-20 text-white">
+      <section className="band-royal py-20 text-white">
         <div className="wrap flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
           <p className="display max-w-2xl text-4xl leading-tight">The next chapter is written on Sundays at {club.meetingTime}.</p>
           <Link href="/contact?interest=visit" className="btn btn-gold">Visit a meeting</Link>

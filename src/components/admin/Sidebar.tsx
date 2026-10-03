@@ -10,11 +10,11 @@ export function Sidebar({ groups, user }: { groups: { group: string; collapsed?:
   const active = (h: string) => (h === "/admin" ? path === "/admin" : path.startsWith(h));
   return (
     <>
-      <div className="flex h-14 items-center justify-between border-b border-ink/10 bg-ink px-4 text-white lg:hidden">
+      <div className="flex h-14 items-center justify-between border-b border-ink/10 bg-royal px-4 text-white lg:hidden">
         <Link href="/admin" className="display text-lg">RC Gayaza · Admin</Link>
         <button onClick={() => setOpen(!open)} aria-expanded={open} className="h-11 px-2 text-sm font-semibold">{open ? "Close" : "Menu"}</button>
       </div>
-      <aside className={`${open ? "block" : "hidden"} w-full shrink-0 bg-ink text-white/80 lg:sticky lg:top-0 lg:block lg:h-svh lg:w-60 lg:overflow-y-auto`}>
+      <aside className={`${open ? "block" : "hidden"} w-full shrink-0 bg-royal text-white/80 lg:sticky lg:top-0 lg:block lg:h-svh lg:w-60 lg:overflow-y-auto`}>
         <div className="hidden px-5 pb-4 pt-6 lg:block">
           <Link href="/admin" className="block leading-none"><span className="block text-[0.55rem] font-semibold uppercase tracking-[0.28em] text-white/50">Rotary Club of</span><span className="display text-2xl text-white">Gayaza</span></Link>
           <p className="mt-1 text-xs text-white/40">Club admin</p>

@@ -17,7 +17,7 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
     db.discoveredItem.findMany({ where: { status: "NEW" }, orderBy: { importedAt: "desc" }, take: 200 }),
     db.discoveredItem.findMany({ where: { status: { not: "NEW" } }, orderBy: { reviewedAt: "desc" }, take: 30 }),
   ]);
-  const Tab = ({ k, label, n }: { k: string; label: string; n?: number }) => <Link href={`?tab=${k}`} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${tab === k ? "bg-ink text-white" : "bg-white text-ink-2 ring-1 ring-ink/10"}`}>{label}{n ? ` · ${n}` : ""}</Link>;
+  const Tab = ({ k, label, n }: { k: string; label: string; n?: number }) => <Link href={`?tab=${k}`} className={`rounded-full px-4 py-1.5 text-sm font-semibold ${tab === k ? "bg-royal text-white" : "bg-white text-ink-2 ring-1 ring-ink/10"}`}>{label}{n ? ` · ${n}` : ""}</Link>;
   return (
     <>
       <PageTitle title="Discovered online" subtitle="Found automatically on District 9213, Rotary-O and the club's sources. Nothing is published until you approve it." actions={<Link href="/admin/sources" className="btn btn-line !min-h-0 !py-2">Sources & import from URL</Link>} />

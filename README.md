@@ -5,7 +5,7 @@ Website and lightweight club-management platform for the **Rotary Club of Gayaza
 The public site is an editorial story: roots → people → service → impact → legacy → future. The member and admin tools sit behind sign-in: QR attendance, analytics, a CMS, event aggregation and the Governor's-visit archive.
 
 ```
-Next.js 15 (App Router, TypeScript) · Tailwind CSS 4 · PostgreSQL + Prisma 6 · Recharts · MapLibre
+Next.js 15 (App Router, TypeScript) · Tailwind CSS 4 · PostgreSQL + Prisma 6 · Recharts · Leaflet + OpenStreetMap
 Self-hosted: Docker / Docker Compose / Coolify. No Firebase, no Vercel-only features, no paid SaaS.
 ```
 
@@ -70,7 +70,7 @@ There is **one permanent QR code**. It never changes, so print it once (**Admin 
 2. They answer:
    - member of RC Gayaza, or guest
    - Rotarian, or Rotaractor
-   - if a guest, which club (a searchable list of about 570 Rotary and Rotaract clubs in Districts 9213 and 9214; any club can be typed in)
+   - if a guest, **which club** (required: a searchable dropdown of about 570 Rotary and Rotaract clubs in Districts 9213 and 9214, filtered by Rotarian/Rotaractor, with a "my club isn't listed" option)
    - full name, email and phone (at least one of the last two)
 3. The sign-in is recorded against **that day's fellowship**, which is created automatically. Fellowship is every Sunday; a sign-in on another day goes to a "Club gathering" for that day. If the club has published an event for that day, the meeting takes its title.
 4. Signing in twice on the same day (same email or phone) updates the first entry instead of adding a duplicate.
@@ -82,9 +82,10 @@ When a member's email or phone matches the **Members & board** directory, the si
 
 **Admin → Attendance** shows:
 - the QR code, with a printable poster and an SVG download
-- a list of fellowships with members, guests, Rotarians and Rotaractors for each
+- **Guests by club**: which Rotary and Rotaract clubs visit, with visits, people and last visit, for this Rotary year or all time
+- a list of fellowships with members, guests, Rotarians, Rotaractors and visiting clubs for each
 - a chart of the most recent fellowships
-- a page per fellowship, where you can add someone by hand, remove an entry or rename the meeting
+- a page per fellowship, with its visiting clubs, where you can add someone by hand, remove an entry or rename the meeting
 - an Excel-friendly CSV export, for everything or for one fellowship
 
 ## Event & content discovery
@@ -116,9 +117,11 @@ Important actions (logins, saves, deletes, approvals, exports, manual attendance
 
 ## Brand
 
-* Rotary Royal Blue `#17458F`, Rotary Gold `#F7A81B` and Azure `#0067C8`, with warm editorial neutrals and a Gayaza *murram* red used only for "roots" lines.
-* Fonts are self-hosted (no Google Fonts call): Libre Baskerville for headlines and Montserrat for labels and body text.
-* The official **Rotary Club of Gayaza** logo (`public/brand/rc-gayaza-logo.png`, from the Brand Center files the club supplied) is used unchanged on white backgrounds. On dark backgrounds the site uses plain text instead of recolouring the mark. The Rotary wheel is never redrawn.
+* Rotary Royal Blue `#17458F`, Rotary Gold `#F7A81B`, Azure `#0067C8` and Sky Blue `#00A2E0`, on warm paper. Dark sections use Royal Blue, never black.
+* Fonts follow the [Rotary Brand Center typography guidance](https://brandcenter.rotary.org/en-GB/Brand-elements/Typography): **Open Sans** (the free alternative to Frutiger) for headlines and navigation, and **Georgia** (the free alternative to Sentinel) for body text and captions. Open Sans is self-hosted. Devices without Georgia get the self-hosted, metric-compatible Gelasio. There are no Google Fonts calls.
+* The official **Rotary Club of Gayaza** logo (`public/brand/rc-gayaza-logo.png`) is always used unchanged. Over photographs it sits on a white tile rather than being recoloured. The Rotary wheel is never redrawn.
+* The header is see-through over the homepage photo. Once you scroll it becomes a compact frosted bar, and it slides away when you scroll down and comes back when you scroll up.
+* Maps use **Leaflet + OpenStreetMap** tiles (no API key). Set `NEXT_PUBLIC_MAP_TILE_URL` to use another tile server.
 
 ## Project structure
 

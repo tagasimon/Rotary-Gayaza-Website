@@ -25,7 +25,7 @@ export function Timeline({ items }: { items: TimelineItem[] }) {
             const isToday = i === todayIdx;
             return (
               <li key={it.id} className="relative w-[250px] shrink-0 pr-8 transition-all duration-700 sm:w-[290px]" style={{ opacity: vis ? 1 : 0, transform: vis ? "none" : "translateY(14px)", transitionDelay: `${i * 0.08}s` }}>
-                {isToday && <span className="eyebrow absolute top-2 left-0 rounded-full bg-ink px-3 py-1 text-gold">Today →</span>}
+                {isToday && <span className="eyebrow absolute top-2 left-0 rounded-full bg-royal px-3 py-1 text-gold">Today →</span>}
                 <span aria-hidden className={`absolute left-0 top-[55px] block h-[14px] w-[14px] rounded-full border-2 ${it.upcoming ? "border-gold bg-paper" : "border-soil bg-soil"}`} />
                 <p className="eyebrow mt-[86px] text-soil">{KIND_LABEL[it.kind] ?? it.kind}</p>
                 <p className="mt-1 text-sm font-semibold tabular-nums text-ink-2">{it.dateLabel}</p>

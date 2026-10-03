@@ -25,7 +25,7 @@ export function ResourceForm({ fields, values, relationOptions, action, mediaUrl
           <div className="grid gap-4 md:grid-cols-2">{s.fields.map((f) => <FieldInput key={f.name} f={f} v={values[f.name]} opts={relationOptions[f.name]} />)}</div>
         </fieldset>
       ))}
-      <div className="sticky bottom-0 z-10 -mx-1 flex items-center gap-3 border-t border-ink/10 bg-[#f4f2ee]/95 px-1 py-3 backdrop-blur">
+      <div className="sticky bottom-0 z-10 -mx-1 flex items-center gap-3 border-t border-ink/10 bg-[#f3f6fb]/95 px-1 py-3 backdrop-blur">
         <button className="btn btn-royal" disabled={pending}>{pending ? "Saving…" : "Save"}</button>
         {state.saved && <span role="status" className="text-sm font-semibold text-leaf">Saved ✓</span>}
         {state.error && <span role="alert" className="text-sm font-semibold text-soil">{state.error}</span>}

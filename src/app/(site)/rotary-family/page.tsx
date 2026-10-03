@@ -19,7 +19,7 @@ export default async function FamilyPage() {
   const [{ nodes, centre }, rels, home] = await Promise.all([buildFamilyNodes(), getFamily(), getHomeClub()]);
   return (
     <>
-      <section className="bg-ink pb-20 pt-20 text-white sm:pt-28">
+      <section className="band-royal pb-20 pt-20 text-white sm:pt-28">
         <div className="wrap">
           <p className="eyebrow text-gold">Our Rotary family</p>
           <h1 className="mt-4 max-w-4xl text-6xl leading-[0.95] sm:text-8xl">Service grows.</h1>
@@ -54,7 +54,7 @@ export default async function FamilyPage() {
           </ol>
         </div>
       </section>
-      <section className="bg-gold py-16"><div className="wrap flex flex-col items-start justify-between gap-6 md:flex-row md:items-center"><p className="display max-w-2xl text-4xl">Want to start an Interact or Rotaract club at your school or campus?</p><Link href="/contact?interest=new-club" className="btn bg-ink text-white hover:bg-royal-deep">Talk to us</Link></div></section>
+      <section className="bg-gold py-16"><div className="wrap flex flex-col items-start justify-between gap-6 md:flex-row md:items-center"><p className="display max-w-2xl text-4xl">Want to start an Interact or Rotaract club at your school or campus?</p><Link href="/contact?interest=new-club" className="btn bg-royal text-white hover:bg-royal-deep">Talk to us</Link></div></section>
     </>
   );
 }

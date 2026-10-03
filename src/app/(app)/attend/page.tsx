@@ -18,8 +18,8 @@ export default async function AttendPage() {
   const title = meeting?.title ?? event?.title ?? (sunday ? "Sunday fellowship" : "Club gathering");
   return (
     <div className="pb-10">
-      <p className="eyebrow text-royal">Sign in · {formatDate(now, "day")}</p>
-      <h1 className="mt-2 text-[1.9rem] leading-tight">{title.replace(/[.:]$/, "")}.</h1>
+      <p className="eyebrow text-azure">Sign in · {formatDate(now, "day")}</p>
+      <h1 className="mt-2 text-[1.9rem] leading-tight text-royal">{title.replace(/[.:]$/, "")}.</h1>
       <p className="mt-2 font-sans text-sm text-muted">Welcome to the Rotary Club of Gayaza. It takes less than a minute.</p>
       <div className="mt-8"><AttendForm /></div>
     </div>

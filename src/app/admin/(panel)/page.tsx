@@ -31,7 +31,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       <PageTitle title={`Hello, ${u.name.split(" ")[0]}`} actions={<Link href="/" target="_blank" className="btn btn-line !min-h-0 !py-2">View website ↗</Link>} />
       {denied && <p className="mb-4 bg-soil/10 p-3 text-sm text-soil">Your role doesn&rsquo;t include “{denied}”.</p>}
 
-      <div className="mb-6 bg-ink p-6 text-white">
+      <div className="mb-6 bg-royal p-6 text-white">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold">Next fellowship</p>
         <p className="display mt-2 text-2xl">{fellowship.event?.title ?? "Sunday fellowship"}</p>
         <p className="mt-1 text-sm text-white/70">{formatDate(fellowship.startsAt, "day")} · {formatTime(fellowship.startsAt)} · {fellowship.venue}</p>

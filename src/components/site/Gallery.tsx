@@ -32,7 +32,7 @@ export function Gallery({ photos, layout = "editorial" }: { photos: GalleryPhoto
         ))}
       </ul>
       {idx !== null && (
-        <div role="dialog" aria-modal="true" aria-label="Photo viewer" className="fixed inset-0 z-[60] flex flex-col bg-black/95 text-white"
+        <div role="dialog" aria-modal="true" aria-label="Photo viewer" className="fixed inset-0 z-[60] flex flex-col bg-royal-ink/95 text-white"
           onTouchStart={(e) => (touchX = e.touches[0].clientX)} onTouchEnd={(e) => { const dx = e.changedTouches[0].clientX - touchX; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); }}>
           <div className="flex items-center justify-between px-4 py-3 text-sm">
             <span className="tabular-nums text-white/60">{idx + 1} / {photos.length}</span>

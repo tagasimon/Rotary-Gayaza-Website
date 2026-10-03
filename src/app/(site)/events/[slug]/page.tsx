@@ -37,7 +37,7 @@ export default async function EventPage({ params }: P) {
       </PageHero>
       <div className="wrap grid gap-12 py-16 md:grid-cols-12">
         <div className="md:col-span-7">
-          {future && <div className="mb-10 inline-block bg-night p-6"><p className="eyebrow mb-3 text-gold">Starts in</p><Countdown to={e.startsAt.toISOString()} /></div>}
+          {future && <div className="mb-10 inline-block bg-royal p-6"><p className="eyebrow mb-3 text-gold">Starts in</p><Countdown to={e.startsAt.toISOString()} /></div>}
           {e.description ? <Markdown>{e.description}</Markdown> : <p className="text-ink-2">More details will follow.</p>}
           {e.dgVisits[0] && <Link href="/district-governor" className="link-arrow mt-6">About the Governor's visits</Link>}
           <div className="mt-10"><ShareButtons url={absUrl(`/events/${e.slug}`)} title={e.title} /></div>

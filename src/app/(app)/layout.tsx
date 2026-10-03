@@ -5,8 +5,8 @@ export const dynamic = "force-dynamic";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-col bg-paper-2">
-      <header className="border-b border-line bg-white">
+    <div className="flex min-h-svh flex-col bg-mist">
+      <header className="border-b-4 border-gold bg-white">
         <div className="mx-auto flex h-16 max-w-xl items-center justify-between px-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <Link href="/"><img src={CLUB_LOGO} alt="Rotary Club of Gayaza" className="h-10 w-auto" /></Link>

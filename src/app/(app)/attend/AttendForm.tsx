@@ -9,54 +9,97 @@ const KEY = "rcg-attend-v1";
 
 function Choice({ name, value, checked, onChange, title, hint }: { name: string; value: string; checked: boolean; onChange: (v: string) => void; title: string; hint?: string }) {
   return (
-    <label className={`flex cursor-pointer items-start gap-3 border px-4 py-3.5 transition-colors ${checked ? "border-ink bg-white" : "border-ink/15 bg-white/60 hover:border-ink/40"}`}>
+    <label className={`flex cursor-pointer items-start gap-3 rounded-lg border px-4 py-3.5 transition-colors ${checked ? "border-royal bg-white ring-2 ring-royal/15" : "border-royal/15 bg-white/70 hover:border-royal/40"}`}>
       <input type="radio" name={name} value={value} checked={checked} onChange={() => onChange(value)} className="mt-1 h-4 w-4 accent-royal" />
       <span><span className="block font-sans text-[0.95rem] font-semibold">{title}</span>{hint && <span className="block font-sans text-xs text-muted">{hint}</span>}</span>
     </label>
   );
 }
 
-function ClubPicker({ affiliation, value, onChange }: { affiliation: string; value: string; onChange: (v: string) => void }) {
-  const [q, setQ] = useState(value);
+const OTHER = "__other__";
+
+/**
+ * Club dropdown for guests. Opens a searchable list of Rotary or Rotaract clubs (Districts 9213 and 9214),
+ * filtered by the Rotarian/Rotaractor answer, with a "my club isn't listed" option that reveals a text box.
+ */
+function ClubSelect({ affiliation, value, onChange }: { affiliation: string; value: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
+  const listed = useMemo(() => new Set(ALL.map((c) => c.name)), []);
+  const [other, setOther] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
-  useEffect(() => setQ(value), [value]);
+  const search = useRef<HTMLInputElement>(null);
+  const type = affiliation === "ROTARACTOR" ? "ROTARACT" : affiliation === "ROTARIAN" ? "ROTARY" : null;
+
+  useEffect(() => { if (value && !listed.has(value)) setOther(true); }, [value, listed]);
   const results = useMemo(() => {
-    const type = affiliation === "ROTARACTOR" ? "ROTARACT" : affiliation === "ROTARIAN" ? "ROTARY" : null;
     const terms = q.toLowerCase().replace(/rot(ary|aract) club of/g, "").split(/\s+/).filter(Boolean);
-    return ALL.filter((c) => (!type || c.type === type) && c.name !== "Rotary Club of Gayaza" && terms.every((t) => c.name.toLowerCase().includes(t))).slice(0, 8);
-  }, [q, affiliation]);
+    return ALL.filter((c) => (!type || c.type === type) && c.name !== "Rotary Club of Gayaza" && terms.every((t) => c.name.toLowerCase().includes(t)));
+  }, [q, type]);
   useEffect(() => {
     const close = (e: MouseEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
-  const pick = (name: string) => { onChange(name); setQ(name); setOpen(false); };
+  useEffect(() => { if (open) setTimeout(() => search.current?.focus(), 0); }, [open]);
+
+  const pick = (name: string) => {
+    if (name === OTHER) { setOther(true); onChange(""); } else { setOther(false); onChange(name); }
+    setOpen(false); setQ("");
+  };
+  const options = [...results.slice(0, 200).map((c) => c.name), OTHER];
+  const groups = (["9213", "9214"] as const).map((d) => ({ d, items: results.slice(0, 200).filter((c) => c.district === d) })).filter((g) => g.items.length);
+
   return (
     <div ref={wrap} className="relative">
-      <input name="club" value={q} autoComplete="off" role="combobox" aria-expanded={open} aria-controls="club-list" aria-autocomplete="list"
-        placeholder={affiliation === "ROTARACTOR" ? "Start typing, e.g. Bugema" : "Start typing, e.g. Kasangati"}
-        onChange={(e) => { setQ(e.target.value); onChange(e.target.value); setOpen(true); setActive(0); }}
-        onFocus={() => setOpen(true)}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, results.length - 1)); }
-          if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
-          if (e.key === "Enter" && open && results[active]) { e.preventDefault(); pick(results[active].name); }
-          if (e.key === "Escape") setOpen(false);
-        }}
-        className="field !min-h-[52px] text-base" />
-      {open && q.length > 0 && (
-        <ul id="club-list" role="listbox" className="absolute z-10 mt-1 max-h-72 w-full overflow-y-auto border border-ink/15 bg-white shadow-lg">
-          {results.map((c, i) => (
-            <li key={c.name} role="option" aria-selected={i === active}>
-              <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(c.name)} className={`block w-full px-3 py-2.5 text-left font-sans text-sm ${i === active ? "bg-paper-2" : ""}`}>
-                {c.name} <span className="text-xs text-muted">· D{c.district}</span>
-              </button>
+      <input type="hidden" name="club" value={value} />
+      <button type="button" id="club" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((o) => !o)}
+        className={`field flex !min-h-[52px] items-center justify-between gap-3 text-left text-base ${value || other ? "" : "text-muted"}`}>
+        <span className="truncate">{other ? "My club isn't listed" : value || (type === "ROTARACT" ? "Choose your Rotaract club" : type === "ROTARY" ? "Choose your Rotary club" : "Choose your club")}</span>
+        <span aria-hidden className={`text-royal transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-royal/20 bg-white shadow-[0_20px_40px_-20px_rgba(15,52,116,.5)]">
+          <div className="border-b border-royal/10 p-2">
+            <input ref={search} value={q} placeholder="Search clubs…" autoComplete="off" aria-label="Search clubs" aria-controls="club-list"
+              onChange={(e) => { setQ(e.target.value); setActive(0); }}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, options.length - 1)); }
+                if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
+                if (e.key === "Enter") { e.preventDefault(); pick(options[active]); }
+                if (e.key === "Escape") setOpen(false);
+              }}
+              className="field !min-h-[44px] text-base" />
+          </div>
+          <ul id="club-list" role="listbox" aria-label="Clubs" className="max-h-72 overflow-y-auto py-1">
+            {groups.map((g) => (
+              <li key={g.d} role="presentation">
+                <p className="sticky top-0 bg-mist px-3 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-royal">District {g.d}</p>
+                <ul role="presentation">
+                  {g.items.map((c) => {
+                    const i = options.indexOf(c.name);
+                    return (
+                      <li key={c.name} role="option" aria-selected={value === c.name}>
+                        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(c.name)} onMouseEnter={() => setActive(i)}
+                          className={`block w-full px-3 py-2.5 text-left text-sm ${i === active ? "bg-mist" : ""} ${value === c.name ? "font-bold text-royal" : ""}`}>{c.name}</button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+            {results.length === 0 && <li className="px-3 py-2 text-sm text-muted">No club matches &ldquo;{q}&rdquo;.</li>}
+            <li role="option" aria-selected={other}>
+              <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(OTHER)} onMouseEnter={() => setActive(options.length - 1)}
+                className={`block w-full border-t border-royal/10 px-3 py-2.5 text-left text-sm font-semibold text-azure ${active === options.length - 1 ? "bg-mist" : ""}`}>My club isn&rsquo;t listed →</button>
             </li>
-          ))}
-          <li className="px-3 py-2 font-sans text-xs text-muted">{results.length ? "Not listed? Just type your club's full name." : "No match — your typed club name will be used."}</li>
-        </ul>
+          </ul>
+        </div>
+      )}
+      {other && (
+        <input value={value} onChange={(e) => onChange(e.target.value)} autoFocus aria-label="Your club's full name"
+          placeholder={type === "ROTARACT" ? "e.g. Rotaract Club of …" : "e.g. Rotary Club of …"} className="field mt-2 !min-h-[52px] text-base" />
       )}
     </div>
   );
@@ -86,7 +129,7 @@ export function AttendForm() {
 
   if (state.ok) {
     return (
-      <div role="status" aria-live="assertive" className="bg-royal p-7 text-white">
+      <div role="status" aria-live="assertive" className="band-royal rounded-2xl p-7 text-white">
         <span aria-hidden className="grid h-12 w-12 place-items-center rounded-full bg-white text-2xl text-royal">✓</span>
         <p className="display mt-5 text-[1.8rem] leading-tight">{state.duplicate ? "You're already signed in." : `Welcome, ${state.name}.`}</p>
         <p className="mt-2 font-sans text-white/75">{state.meeting} · {state.when}</p>
@@ -115,9 +158,10 @@ export function AttendForm() {
         </div>
       </fieldset>
       {status === "guest" && (
-        <div>
-          <label className="label" htmlFor="club">Which club are you from?</label>
-          <ClubPicker affiliation={affiliation} value={club} onChange={setClub} />
+        <div className="rounded-lg border-l-4 border-gold bg-white p-4">
+          <label className="label" htmlFor="club">Which club are you visiting from? <span className="text-cranberry">*</span></label>
+          <ClubSelect affiliation={affiliation} value={club} onChange={setClub} />
+          <p className="mt-2 text-xs text-muted">This helps the club see which clubs visit us.</p>
         </div>
       )}
       <div className="space-y-4">
@@ -127,7 +171,7 @@ export function AttendForm() {
       </div>
       <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
       {state.error && <p role="alert" className="border-l-4 border-gold bg-white px-4 py-3 font-sans text-sm font-semibold text-ink">{state.error}</p>}
-      <button disabled={pending} className="btn btn-dark w-full !py-5">{pending ? "Signing in…" : "Sign in"}</button>
+      <button disabled={pending} className="btn btn-royal w-full !py-5 text-base">{pending ? "Signing in…" : "Sign in"}</button>
       <p className="text-center font-sans text-xs text-muted">This phone will remember your details for next Sunday.</p>
     </form>
   );

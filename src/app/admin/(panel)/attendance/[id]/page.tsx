@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { tally, displayName } from "@/lib/attendance-report";
+import { tally, displayName, guestsByClub } from "@/lib/attendance-report";
+import { GuestClubs } from "@/components/admin/GuestClubs";
 import { PageTitle, Stat } from "@/components/admin/ui";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { AddAttendee } from "@/components/admin/AddAttendee";
@@ -41,6 +42,7 @@ export default async function MeetingAttendance({ params }: { params: Promise<{ 
           </table>
         </section>
         <aside className="space-y-4">
+          <GuestClubs rows={guestsByClub(m.records)} title="Visiting clubs" showLast={false} />
           <div className="card p-4"><h2 className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-royal">Add someone</h2><AddAttendee action={addRecord.bind(null, m.id)} /></div>
           <form action={renameMeeting.bind(null, m.id)} className="card space-y-2 p-4"><h2 className="text-xs font-bold uppercase tracking-[0.18em] text-royal">Meeting name</h2><input name="title" defaultValue={m.title} className="field" /><button className="btn btn-line !min-h-0 !py-2">Save</button></form>
           <div className="card p-4"><ConfirmButton action={deleteMeeting.bind(null, m.id)} label="Delete this fellowship and all its sign-ins" confirmText="Click again to delete" /></div>

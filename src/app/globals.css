@@ -1,35 +1,43 @@
 @import "tailwindcss";
-@import "@fontsource/libre-baskerville/400.css";
-@import "@fontsource/libre-baskerville/400-italic.css";
-@import "@fontsource/libre-baskerville/700.css";
-@import "@fontsource-variable/montserrat/index.css";
+/* Rotary brand typefaces (brandcenter.rotary.org → Typography):
+   primary  = Frutiger, free alternative Open Sans  → headlines and navigation
+   secondary = Sentinel, free alternative Georgia    → body text, secondary headlines, captions
+   Open Sans is self-hosted. Georgia is used where installed; Gelasio (a free, metric-compatible
+   Georgia design) is self-hosted for Android/Linux and is only downloaded when Georgia is missing. */
+@import "@fontsource-variable/open-sans/index.css";
+@import "@fontsource-variable/open-sans/wght-italic.css";
+@import "@fontsource/gelasio/400.css";
+@import "@fontsource/gelasio/400-italic.css";
+@import "@fontsource/gelasio/700.css";
 
-/*
- * Editorial, classic look: Libre Baskerville headlines (ending in a full stop),
- * small letter-spaced Montserrat labels, black / white / grey with Rotary blue and gold accents.
- * Square edges, no gradients, no glows.
- */
 @theme {
+  /* Rotary official colours */
   --color-royal: #17458f;
-  --color-royal-deep: #0e2f63;
+  --color-royal-deep: #0f3474;
+  --color-royal-ink: #0b2a5c;
   --color-gold: #f7a81b;
-  --color-gold-soft: #fbc766;
+  --color-gold-soft: #fbd38a;
   --color-azure: #0067c8;
-
-  --color-paper: #ffffff;
-  --color-paper-2: #f2f2f2;
-  --color-ink: #151515;
-  --color-ink-2: #353535;
-  --color-muted: #6f6f6f;
-  --color-line: #e2e2e2;
-  --color-night: #0f0f0f;
-  --color-night-2: #1b1b1b;
-  /* kept for admin badges and charts */
-  --color-soil: #9a4a1c;
+  --color-sky: #00a2e0;      /* Rotary secondary: Sky Blue */
+  --color-mist: #e6eef8;     /* light royal tint for alternating bands */
+  --color-cranberry: #d41367; /* Rotary accent, used sparingly */
+  /* Neutrals: warm paper, royal-navy ink (no black anywhere) */
+  --color-paper: #f8f5ee;
+  --color-paper-2: #efe9dc;
+  --color-ink: #10264d;
+  --color-ink-2: #2c3f63;
+  --color-muted: #5b6784;
+  --color-line: #dcd4c3;
+  /* legacy names, mapped to Rotary blues so nothing renders black */
+  --color-night: #0f3474;
+  --color-night-2: #17458f;
+  /* Gayaza murram (red soil) for the "roots" lines; leaf for admin badges */
+  --color-soil: #b4532a;
   --color-leaf: #2f6b3b;
 
-  --font-display: "Libre Baskerville", Georgia, "Times New Roman", serif;
-  --font-sans: "Montserrat Variable", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Open Sans Variable", "Frutiger", "Segoe UI", Arial, sans-serif;
+  --font-sans: "Open Sans Variable", "Frutiger", "Segoe UI", Arial, sans-serif;
+  --font-serif: Georgia, "Gelasio", "Sentinel", "Times New Roman", serif;
 
   --ease-story: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -37,86 +45,108 @@
 @layer base {
   html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-  body { @apply bg-paper text-ink font-sans antialiased; font-size: 16px; }
+  body { @apply bg-paper text-ink font-sans antialiased; font-feature-settings: "kern", "liga"; }
   h1, h2, h3, .display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; }
   ::selection { background: var(--color-gold); color: var(--color-ink); }
-  :focus-visible { outline: 2px solid var(--color-gold); outline-offset: 3px; }
+  :focus-visible { outline: 3px solid var(--color-gold); outline-offset: 3px; border-radius: 2px; }
   a { text-underline-offset: 3px; }
 }
 
 @layer components {
-  .wrap { @apply mx-auto w-full max-w-[1180px] px-5 sm:px-8 lg:px-10; }
-
-  /* small spaced label above a headline, e.g. "ABOUT" */
-  .eyebrow { @apply font-sans text-[0.72rem] font-bold uppercase tracking-[0.2em]; }
-  .label { @apply mb-1.5 block font-sans text-[0.68rem] font-bold uppercase tracking-[0.18em] text-ink-2; }
-
-  /* lead paragraph (sans, grey, roomy) and body copy (serif) */
-  .lede { @apply font-sans text-[1.08rem] leading-[1.85] text-muted sm:text-[1.2rem]; }
-  .body-serif { font-family: var(--font-display); @apply text-[0.98rem] leading-[1.95] text-ink-2; }
-
+  .wrap { @apply mx-auto w-full max-w-[1240px] px-4 sm:px-6 lg:px-10; }
+  .eyebrow { @apply font-sans text-[0.72rem] font-bold uppercase tracking-[0.18em]; }
+  .serif { font-family: var(--font-serif); }
+  .lede { font-family: var(--font-serif); @apply text-lg leading-relaxed text-ink-2 sm:text-xl; }
+  .body-serif { font-family: var(--font-serif); @apply text-[1rem] leading-[1.8] text-ink-2; }
   .rule { height: 1px; background: var(--color-line); }
   .rule-short { @apply mx-auto my-8 block h-px w-28 bg-line; }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-7 py-4 font-sans text-[0.72rem] font-bold uppercase tracking-[0.22em] transition-colors duration-200 disabled:opacity-50;
-    min-height: 48px;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-sans text-sm font-bold transition-colors duration-200 disabled:opacity-50;
+    min-height: 44px;
   }
-  .btn-dark { @apply bg-ink text-white hover:bg-royal; }
+  .btn-gold { @apply bg-gold text-royal-ink hover:bg-gold-soft; }
   .btn-royal { @apply bg-royal text-white hover:bg-royal-deep; }
-  .btn-gold { @apply bg-gold text-ink hover:bg-gold-soft; }
-  .btn-ghost { @apply border border-white/40 text-white hover:border-white hover:bg-white hover:text-ink; }
-  .btn-line { @apply border border-ink/25 text-ink hover:border-ink hover:bg-ink hover:text-white; }
-  .btn-grey { @apply bg-[#8a8a8a] text-ink hover:bg-[#9b9b9b]; }
+  .btn-dark { @apply bg-royal text-white hover:bg-azure; }
+  .btn-azure { @apply bg-azure text-white hover:bg-royal; }
+  .btn-ghost { @apply border border-current/30 hover:bg-white/10; }
+  .btn-line { @apply border border-royal/25 text-royal hover:border-royal hover:bg-white; }
+  .btn-grey { @apply bg-mist text-royal hover:bg-white; }
 
-  .link-arrow { @apply inline-flex items-center gap-2 font-sans text-[0.72rem] font-bold uppercase tracking-[0.2em] text-ink hover:text-royal; }
+  .link-arrow { @apply inline-flex items-center gap-1.5 font-sans font-bold text-royal hover:text-azure; }
   .link-arrow::after { content: "→"; transition: transform .25s var(--ease-story); }
   .link-arrow:hover::after { transform: translateX(3px); }
 
-  .chip { @apply inline-flex items-center gap-1 border border-ink/15 px-2 py-0.5 font-sans text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink-2; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full border border-royal/20 px-2.5 py-0.5 font-sans text-[0.7rem] font-bold uppercase tracking-wider text-ink-2; }
 
-  /* Story prose */
-  .prose-story { font-family: var(--font-display); @apply text-[1.02rem] leading-[1.95] text-ink-2; }
+  /* Prose for markdown: Rotary's secondary face (Georgia) for body text */
+  .prose-story { font-family: var(--font-serif); @apply text-[1.075rem] leading-[1.8] text-ink-2; }
   .prose-story p { @apply my-5; }
-  .prose-story h2 { @apply mb-4 mt-12 text-3xl text-ink; }
-  .prose-story h3 { @apply mb-3 mt-8 text-2xl text-ink; }
+  .prose-story h2 { @apply mt-12 mb-4 text-3xl text-ink; }
+  .prose-story h3 { @apply mt-8 mb-3 text-2xl text-ink; }
   .prose-story ul { @apply my-5 list-none space-y-2 pl-0; }
   .prose-story ul li { @apply relative pl-6; }
-  .prose-story ul li::before { content: "—"; @apply absolute left-0 text-muted; }
+  .prose-story ul li::before { content: ""; @apply absolute left-0 top-[0.8em] h-px w-3.5 bg-gold; }
   .prose-story ol { @apply my-5 list-decimal pl-6; }
-  .prose-story a { @apply text-royal underline decoration-1; }
+  .prose-story a { @apply text-royal underline decoration-gold decoration-2; }
   .prose-story strong { @apply font-bold text-ink; }
-  .prose-story blockquote { @apply my-8 border-l-2 border-gold pl-6 text-xl italic text-ink; }
+  .prose-story blockquote { @apply my-8 border-l-4 border-gold pl-6 text-2xl italic text-royal; }
+  .prose-story > p:first-child::first-letter {
+    font-family: var(--font-display); font-weight: 800; float: left; font-size: 4.2em; line-height: .82; padding: .06em .12em 0 0; color: var(--color-royal);
+  }
   .prose-plain p { @apply my-3; }
   .prose-plain ul { @apply my-3 list-disc pl-5; }
 
-  /* Forms */
-  .field { @apply block w-full border border-ink/15 bg-white px-3 py-2.5 text-[0.95rem] text-ink outline-none transition focus:border-royal focus:ring-2 focus:ring-royal/15; min-height: 44px; }
-  .field-line { @apply block w-full border-0 border-b border-white/25 bg-transparent px-0 py-3 text-white outline-none placeholder:text-white/45 focus:border-gold; }
-  .card { @apply border border-ink/10 bg-white; }
+  /* Form controls */
+  .field { @apply block w-full rounded-md border border-royal/20 bg-white px-3 py-2 text-[0.95rem] text-ink shadow-sm outline-none transition focus:border-royal focus:ring-2 focus:ring-royal/20; min-height: 44px; }
+  .field-line { @apply block w-full border-0 border-b border-white/30 bg-transparent px-0 py-3 text-white outline-none placeholder:text-white/55 focus:border-gold; }
+  .label { @apply mb-1 block font-sans text-xs font-bold uppercase tracking-wide text-ink-2; }
+  .card { @apply rounded-lg border border-royal/10 bg-white; }
 }
 
-/* small uppercase section labels (admin) stay in the sans face */
-h2.text-xs, h3.text-xs { font-family: var(--font-sans); letter-spacing: 0.18em; }
+/* small uppercase section labels (admin) */
+h2.text-xs, h3.text-xs { letter-spacing: 0.16em; }
 
-/* Reveal (only when JS is running) */
-.js [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity .8s var(--ease-story), transform .8s var(--ease-story); }
-.js [data-reveal].in { opacity: 1; transform: none; }
-.js [data-reveal-img] { opacity: 0; transition: opacity 1s var(--ease-story); }
-.js [data-reveal-img].in { opacity: 1; }
-@media (prefers-reduced-motion: reduce) {
-  .js [data-reveal], .js [data-reveal-img] { opacity: 1; transform: none; }
-  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+/* Paper grain: very subtle warmth */
+.grain { position: relative; isolation: isolate; }
+.grain::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; opacity: .35; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.1 0 0 0 .08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Timeline rail */
-.rail { transform-origin: left; transform: scaleX(0); transition: transform 1.8s var(--ease-story); }
-.is-visible .rail { transform: scaleX(1); }
-.draw-path { stroke-dasharray: var(--len, 1200); stroke-dashoffset: var(--len, 1200); transition: stroke-dashoffset 1.4s var(--ease-story); }
-.is-visible .draw-path { stroke-dashoffset: 0; }
-@media (prefers-reduced-motion: reduce) { .rail { transform: none; } .draw-path { stroke-dashoffset: 0; } }
+/* Royal-blue band with a soft azure light, used instead of black sections */
+.band-royal { background: radial-gradient(120% 90% at 85% 0%, rgba(0,103,200,.55) 0%, rgba(0,103,200,0) 55%), linear-gradient(180deg, #17458f 0%, #0f3474 100%); }
+
+/* Branch drawing (timeline + family tree) */
+.draw-path { stroke-dasharray: var(--len, 1200); stroke-dashoffset: var(--len, 1200); transition: stroke-dashoffset 1.6s var(--ease-story); }
+.is-visible .draw-path, .draw-path.is-visible { stroke-dashoffset: 0; }
+
+@keyframes pulse-ring { 0% { transform: scale(.8); opacity: .7 } 100% { transform: scale(2.2); opacity: 0 } }
+.pulse-ring { animation: pulse-ring 2.4s var(--ease-story) infinite; }
 
 .no-scrollbar { scrollbar-width: none; } .no-scrollbar::-webkit-scrollbar { display: none; }
-.photo-mono { filter: grayscale(1) contrast(1.05); }
+.photo-mono { filter: saturate(.85) contrast(1.03); }
+
+/* Reveal (only when JS is running) */
+.js [data-reveal] { opacity: 0; transform: translateY(22px); transition: opacity .9s var(--ease-story), transform .9s var(--ease-story); }
+.js [data-reveal].in { opacity: 1; transform: none; }
+.js [data-reveal-img] { clip-path: inset(10% 6% 10% 6%); transition: clip-path 1.2s var(--ease-story); }
+.js [data-reveal-img].in { clip-path: inset(0 0 0 0); }
+
+/* Timeline rail */
+.rail { transform-origin: left; transform: scaleX(0); transition: transform 2.2s var(--ease-story); }
+.is-visible .rail { transform: scaleX(1); }
+
+/* Leaflet map: keep controls on-brand */
+.leaflet-container { font-family: var(--font-sans); background: var(--color-mist); }
+.leaflet-popup-content { font-family: var(--font-sans); color: var(--color-ink); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--color-royal); }
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-path { transition: none; stroke-dashoffset: 0; }
+  .rail { transform: none; }
+  .js [data-reveal], .js [data-reveal-img] { opacity: 1; transform: none; clip-path: none; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
 
 @media print { header, footer, .no-print { display: none !important; } body { background: white; } }

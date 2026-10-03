@@ -1,7 +1,9 @@
 import Link from "next/link";
 import QRCode from "qrcode";
 import { requireAdmin } from "@/lib/auth";
-import { meetingsWithCounts } from "@/lib/attendance-report";
+import { meetingsWithCounts, guestClubReport } from "@/lib/attendance-report";
+import { GuestClubs } from "@/components/admin/GuestClubs";
+import { currentRotaryYear, rotaryYearRange } from "@/lib/rotary-year";
 import { PageTitle, Stat, Empty } from "@/components/admin/ui";
 import { AttendanceByMeeting } from "@/components/admin/Charts";
 import { CopyLink } from "@/components/admin/CopyLink";
@@ -10,12 +12,16 @@ import { SITE_URL } from "@/lib/utils";
 
 export const metadata = { title: "Attendance" };
 
-export default async function Attendance() {
+export default async function Attendance({ searchParams }: { searchParams: Promise<{ clubs?: string }> }) {
   await requireAdmin("attendance");
+  const sp = await searchParams;
+  const ry = currentRotaryYear();
+  const allTime = sp.clubs === "all";
   const url = `${SITE_URL()}/attend`;
-  const [svg, meetings] = await Promise.all([
-    QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#151515", light: "#ffffff" } }),
+  const [svg, meetings, clubs] = await Promise.all([
+    QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#0b2a5c", light: "#ffffff" } }),
     meetingsWithCounts(),
+    guestClubReport(allTime ? undefined : rotaryYearRange(ry).start),
   ]);
   const last = meetings[0];
   const recent = meetings.slice(0, 12).reverse();
@@ -33,18 +39,25 @@ export default async function Attendance() {
             <Stat label="Average" value={avg || "—"} hint="per fellowship (last 8)" />
           </div>
           {recent.length > 1 && <AttendanceByMeeting data={recent.map((m) => ({ label: formatDate(m.date, "short").replace(/ \d{4}$/, ""), present: m.members, guests: m.guests, excused: 0 }))} />}
+          <div>
+            <div className="mb-2 flex gap-2 text-xs">
+              <Link href="/admin/attendance" className={`rounded-full px-3 py-1 font-semibold ${!allTime ? "bg-royal text-white" : "bg-white text-royal"}`}>Rotary year {ry}</Link>
+              <Link href="/admin/attendance?clubs=all" className={`rounded-full px-3 py-1 font-semibold ${allTime ? "bg-royal text-white" : "bg-white text-royal"}`}>All time</Link>
+            </div>
+            <GuestClubs rows={clubs} note={allTime ? "all time" : `Rotary year ${ry}`} />
+          </div>
           <section className="card overflow-x-auto">
             <h2 className="border-b border-ink/10 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-royal">Fellowships</h2>
             {meetings.length === 0 ? <div className="p-8"><Empty>No sign-ins yet. Print the QR code and put it up at Sunday&rsquo;s fellowship.</Empty></div> : (
               <table className="w-full text-sm">
-                <thead className="text-left text-xs uppercase tracking-wide text-muted"><tr><th className="px-4 py-2">Date</th><th className="px-2 py-2">Meeting</th><th className="px-2 py-2 text-right">Members</th><th className="px-2 py-2 text-right">Guests</th><th className="px-2 py-2 text-right">Rotarians</th><th className="px-2 py-2 text-right">Rotaractors</th><th className="px-4 py-2 text-right">Total</th></tr></thead>
+                <thead className="text-left text-xs uppercase tracking-wide text-muted"><tr><th className="px-4 py-2">Date</th><th className="px-2 py-2">Meeting</th><th className="px-2 py-2 text-right">Members</th><th className="px-2 py-2 text-right">Guests</th><th className="px-2 py-2 text-right">Rotarians</th><th className="px-2 py-2 text-right">Rotaractors</th><th className="px-2 py-2 text-right">Clubs</th><th className="px-4 py-2 text-right">Total</th></tr></thead>
                 <tbody>
                   {meetings.map((m) => (
                     <tr key={m.id} className="border-t border-ink/5 hover:bg-paper-2">
                       <td className="whitespace-nowrap px-4 py-2"><Link href={`/admin/attendance/${m.id}`} className="font-semibold text-royal hover:underline">{formatDate(m.date, "short")}</Link></td>
                       <td className="px-2 py-2">{m.title}</td>
                       <td className="px-2 py-2 text-right tabular-nums">{m.members}</td><td className="px-2 py-2 text-right tabular-nums">{m.guests}</td>
-                      <td className="px-2 py-2 text-right tabular-nums">{m.rotarians}</td><td className="px-2 py-2 text-right tabular-nums">{m.rotaractors}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{m.rotarians}</td><td className="px-2 py-2 text-right tabular-nums">{m.rotaractors}</td><td className="px-2 py-2 text-right tabular-nums" title={m.clubs.join(", ")}>{m.clubs.length}</td>
                       <td className="px-4 py-2 text-right font-semibold tabular-nums">{m.total}</td>
                     </tr>
                   ))}
@@ -59,7 +72,7 @@ export default async function Attendance() {
           <div className="mt-4 border border-ink/10 p-3" dangerouslySetInnerHTML={{ __html: svg }} aria-label="Attendance QR code" role="img" />
           <p className="mt-3 break-all text-xs text-muted">{url}</p>
           <div className="mt-4 grid gap-2">
-            <Link href="/admin/attendance/poster" target="_blank" className="btn btn-dark !min-h-0 !py-3">Print poster / show on screen</Link>
+            <Link href="/admin/attendance/poster" target="_blank" className="btn btn-royal !min-h-0 !py-3">Print poster / show on screen</Link>
             <a href={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`} download="rc-gayaza-attendance-qr.svg" className="btn btn-line !min-h-0 !py-3">Download QR (SVG)</a>
             <CopyLink text={url} />
           </div>

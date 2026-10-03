@@ -20,11 +20,11 @@ export type FamilyNode = {
 type Lay = { mode: "col" | "row"; at: number; from: number; to: number };
 const GROUPS: Record<FamilyGroup, { title: string; color: string; lay: Lay; label: [number, number, "start" | "middle" | "end"] }> = {
   future: { title: "New growth", color: "#F7A81B", lay: { mode: "row", at: 70, from: 420, to: 580 }, label: [500, 28, "middle"] },
-  projects: { title: "Service projects", color: "#cfcfcf", lay: { mode: "col", at: 735, from: 70, to: 300 }, label: [735, 38, "start"] },
-  communities: { title: "Communities", color: "#e0b860", lay: { mode: "col", at: 715, from: 410, to: 480 }, label: [715, 385, "start"] },
-  youth: { title: "Clubs we helped start", color: "#7fa8e8", lay: { mode: "col", at: 265, from: 100, to: 300 }, label: [265, 68, "end"] },
-  partners: { title: "Partners", color: "#9a9a9a", lay: { mode: "col", at: 285, from: 420, to: 470 }, label: [285, 395, "end"] },
-  roots: { title: "Our roots", color: "#c98a0e", lay: { mode: "row", at: 575, from: 400, to: 600 }, label: [500, 640, "middle"] },
+  projects: { title: "Service projects", color: "#00A2E0", lay: { mode: "col", at: 735, from: 70, to: 300 }, label: [735, 38, "start"] },
+  communities: { title: "Communities", color: "#FF7600", lay: { mode: "col", at: 715, from: 410, to: 480 }, label: [715, 385, "start"] },
+  youth: { title: "Clubs we helped start", color: "#8EC5FF", lay: { mode: "col", at: 265, from: 100, to: 300 }, label: [265, 68, "end"] },
+  partners: { title: "Partners", color: "#C9D6EE", lay: { mode: "col", at: 285, from: 420, to: 470 }, label: [285, 395, "end"] },
+  roots: { title: "Our roots", color: "#E2734A", lay: { mode: "row", at: 575, from: 400, to: 600 }, label: [500, 640, "middle"] },
 };
 const ORDER: FamilyGroup[] = ["roots", "youth", "future", "projects", "communities", "partners"];
 
@@ -54,7 +54,7 @@ const trunc = (s: string) => (s.length > 26 ? s.slice(0, 25).trimEnd() + "…" :
 
 function RelChip({ rel }: { rel?: string }) {
   if (!rel) return null;
-  return <span className="inline-block bg-gold px-2 py-0.5 font-sans text-[0.6rem] font-bold uppercase tracking-[0.14em] text-ink">{rel.replace("_", " ")}</span>;
+  return <span className="inline-block rounded-full bg-gold px-2 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink">{rel.replace("_", " ")}</span>;
 }
 
 export function FamilyTree({ nodes, centre }: { nodes: FamilyNode[]; centre: { title: string; story: string; year?: string } }) {
@@ -112,7 +112,7 @@ export function FamilyTree({ nodes, centre }: { nodes: FamilyNode[]; centre: { t
           })}
 
           {/* centre */}
-          
+          <circle cx={CX} cy={CY} r="120" fill="url(#glow)" />
           <g tabIndex={0} role="button" aria-label={`${centre.title}. ${centre.story}`} onFocus={() => setActive(null)} onMouseEnter={() => setActive(null)} className="cursor-default outline-none">
             <circle cx={CX} cy={CY} r="68" className="fill-royal" stroke="#F7A81B" strokeWidth="3" />
             <text x={CX} y={CY - 6} textAnchor="middle" className="fill-gold text-[10px] font-semibold uppercase tracking-[0.2em]">Rotary Club of</text>
@@ -134,7 +134,8 @@ export function FamilyTree({ nodes, centre }: { nodes: FamilyNode[]; centre: { t
                 onKeyDown={(e) => { if (e.key === "Enter" && n.href) window.location.href = n.href; }}
                 className="cursor-pointer outline-none transition-opacity duration-700"
                 style={{ opacity: visible ? (active && !isActive ? 0.55 : 1) : 0, transitionDelay: visible && !active ? `${0.6 + i * 0.07}s` : "0s" }}>
-                                <circle cx={p.x} cy={p.y} r={isActive ? r + 4 : r} fill={n.invite ? "transparent" : GROUPS[n.group].color}
+                {n.group === "future" && !n.invite && <circle cx={p.x} cy={p.y} r={r} fill="#F7A81B" className="pulse-ring" style={{ transformOrigin: `${p.x}px ${p.y}px` }} />}
+                <circle cx={p.x} cy={p.y} r={isActive ? r + 4 : r} fill={n.invite ? "transparent" : GROUPS[n.group].color}
                   stroke={n.invite ? GROUPS[n.group].color : isActive ? "#fff" : "rgba(255,255,255,.35)"} strokeWidth={n.invite ? 1.5 : 2} strokeDasharray={n.invite ? "3 3" : undefined} />
                 <text x={lx} y={ly} textAnchor={p.anchor}
                   className={`text-[14px] ${isActive ? "fill-gold" : "fill-white/85"}`} style={{ fontWeight: isActive ? 700 : 500 }}>
@@ -176,7 +177,7 @@ export function FamilyTree({ nodes, centre }: { nodes: FamilyNode[]; centre: { t
         {(["roots", "centre", "youth", "projects", "communities", "partners", "future"] as const).map((g) => {
           if (g === "centre") {
             return (
-              <li key="centre" className="relative my-2 bg-royal p-5 text-white">
+              <li key="centre" className="relative my-2 rounded-sm bg-royal p-5 text-white">
                 <p className="eyebrow text-gold">The trunk{centre.year ? ` · ${centre.year}` : ""}</p>
                 <p className="display mt-1 text-3xl">{centre.title}</p>
                 <p className="mt-2 text-sm text-white/80">{centre.story}</p>
@@ -193,7 +194,7 @@ export function FamilyTree({ nodes, centre }: { nodes: FamilyNode[]; centre: { t
                 {items.map((n) => (
                   <li key={n.id} className="relative">
                     <span aria-hidden className="absolute -left-[24px] top-2 h-3 w-3 rounded-full border-2" style={{ borderColor: GROUPS[g].color, background: n.invite ? "transparent" : GROUPS[g].color }} />
-                    <div className="border border-white/10 p-4">
+                    <div className="rounded-sm border border-white/10 bg-white/5 p-4">
                       <div className="flex flex-wrap items-center gap-2"><RelChip rel={n.relationship} />{n.year && <span className="text-xs text-white/60">{n.year}</span>}</div>
                       <p className="mt-1 font-semibold text-white">{n.label}</p>
                       <p className="text-xs text-white/60">{n.kind}</p>

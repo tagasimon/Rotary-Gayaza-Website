@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
-export function MobileNav({ items }: { items: { href: string; label: string }[] }) {
+export function MobileNav({ items, onDark }: { items: { href: string; label: string }[]; onDark?: boolean }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
   useEffect(() => setOpen(false), [path]);
@@ -15,23 +15,27 @@ export function MobileNav({ items }: { items: { href: string; label: string }[] 
   }, [open]);
   return (
     <div className="lg:hidden">
-      <button type="button" aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen(true)} className="flex h-11 items-center gap-3 font-sans text-[0.68rem] font-bold uppercase tracking-[0.2em] text-ink-2">
-        Menu
-        <span aria-hidden className="flex flex-col gap-[5px]"><i className="block h-[2px] w-5 bg-current" /><i className="block h-[2px] w-5 bg-current" /><i className="block h-[2px] w-5 bg-current" /></span>
+      <button type="button" aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen(true)}
+        className={`flex h-11 items-center gap-2 rounded-full px-3 text-sm font-bold ${onDark ? "text-white" : "text-royal"}`}>
+        <span>Menu</span>
+        <span aria-hidden className="flex flex-col gap-[5px]"><i className="block h-[2px] w-5 bg-current" /><i className="block h-[2px] w-3.5 self-end bg-gold" /></span>
       </button>
       {open && (
-        <div id="mobile-menu" role="dialog" aria-modal="true" aria-label="Site menu" className="fixed inset-0 z-50 flex flex-col bg-night text-white">
-          <div className="wrap flex h-[78px] items-center justify-between">
-            <span className="font-sans text-[0.62rem] font-bold uppercase tracking-[0.3em] text-white/50">Rotary Club of Gayaza</span>
-            <button type="button" onClick={() => setOpen(false)} className="h-11 font-sans text-[0.68rem] font-bold uppercase tracking-[0.2em]" autoFocus>Close ✕</button>
+        <div id="mobile-menu" role="dialog" aria-modal="true" aria-label="Site menu" className="band-royal fixed inset-0 z-50 flex flex-col text-white">
+          <div className="wrap flex h-[84px] items-center justify-between">
+            <span className="eyebrow text-gold">Rotary Club of Gayaza</span>
+            <button type="button" onClick={() => setOpen(false)} className="h-11 rounded-full px-3 text-sm font-bold" autoFocus>Close ✕</button>
           </div>
-          <nav aria-label="Mobile" className="wrap flex-1 overflow-y-auto pb-10 pt-4">
-            <ul>
+          <nav aria-label="Mobile" className="wrap flex-1 overflow-y-auto pb-10">
+            <ul className="divide-y divide-white/15 border-y border-white/15">
               {items.map((n) => (
-                <li key={n.href} className="border-b border-white/10"><Link href={n.href} className="display block py-4 text-[1.6rem] hover:text-gold">{n.label}.</Link></li>
+                <li key={n.href}><Link href={n.href} className="display flex items-center justify-between py-4 text-[1.7rem] hover:text-gold">{n.label}<span aria-hidden className="text-base text-gold">→</span></Link></li>
               ))}
             </ul>
-            <Link href="/attend" className="btn btn-gold mt-8 w-full">Sign in to fellowship</Link>
+            <div className="mt-8 flex flex-col gap-3">
+              <Link href="/attend" className="btn btn-gold">Fellowship sign-in</Link>
+              <Link href="/contact?interest=join" className="btn btn-ghost text-white">Join / get involved</Link>
+            </div>
           </nav>
         </div>
       )}

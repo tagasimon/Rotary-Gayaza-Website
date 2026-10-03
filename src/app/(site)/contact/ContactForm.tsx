@@ -22,7 +22,7 @@ export function ContactForm({ interest, tone = "light" }: { interest?: string; t
       <label className="sm:col-span-2">{lab("Message")}<textarea name="message" required rows={dark ? 4 : 5} defaultValue={f.message} placeholder={dark ? "Message" : undefined} className={field} /></label>
       <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
       {state.error && <p role="alert" className={`text-sm font-semibold sm:col-span-2 ${dark ? "text-gold" : "text-soil"}`}>{state.error}</p>}
-      <div className="sm:col-span-2"><button className={`btn w-full ${dark ? "bg-royal text-white hover:bg-royal-deep" : "btn-dark sm:w-auto"}`} disabled={pending}>{pending ? "Sending…" : "Send message"}</button></div>
+      <div className="sm:col-span-2"><button className={`btn w-full ${dark ? "bg-royal text-white hover:bg-royal-deep" : "btn-royal sm:w-auto"}`} disabled={pending}>{pending ? "Sending…" : "Send message"}</button></div>
     </form>
   );
 }
