@@ -69,7 +69,7 @@ export function Header({ logoUrl, overlay = false }: { logoUrl?: string | null; 
               {n.label}
             </Link>
           ))}
-          <Link href="/attend" className={`btn ml-3 !min-h-0 !py-2.5 ${clear ? "btn-gold" : "btn-royal"}`}>Fellowship sign-in</Link>
+          <Link href="/attend" className={`btn ml-3 !min-h-0 !py-2.5 ${clear ? "btn-gold" : "btn-royal"}`}>Meeting sign-in</Link>
         </nav>
         <MobileNav items={[...PRIMARY_NAV, ...SECONDARY_NAV]} onDark={clear} />
       </div>

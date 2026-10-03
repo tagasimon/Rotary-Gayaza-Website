@@ -66,7 +66,7 @@ export default async function Home() {
           <div className="mt-9 flex flex-wrap gap-3">
             <Link href="/contact?interest=join" className="btn btn-gold">Join / get involved</Link>
             <Link href="/impact" className="btn btn-ghost text-white">See our impact</Link>
-            <Link href="/attend" className="btn btn-ghost text-white">Fellowship sign-in</Link>
+            <Link href="/attend" className="btn btn-ghost text-white">Meeting sign-in</Link>
           </div>
         </div>
       </section>
@@ -312,7 +312,7 @@ export default async function Home() {
           <ul className="mt-12 grid gap-px overflow-hidden rounded-xl bg-royal/15 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["Attend a fellowship", `${club.meetingDay}s, ${club.meetingTime} at ${club.venue}.`, "/contact?interest=visit"],
-              ["Sign in at fellowship", "Scan the QR code at the door, or use this link on the day.", "/attend"],
+              ["Sign in at a meeting", "Scan the QR code at the door, or use this link on the day.", "/attend"],
               ["Support a project", "Fund, supply or show up for a service project.", "/contact?interest=support"],
               ["Partner or sponsor", "Schools, businesses, health centres and NGOs.", "/contact?interest=partner"],
               ["Learn about Rotary", "What Rotary is and how membership works.", "https://www.rotary.org/en/get-involved/join"],

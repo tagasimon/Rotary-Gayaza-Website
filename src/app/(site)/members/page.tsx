@@ -28,7 +28,7 @@ export default async function Members() {
               </li>
             ))}
           </ul>
-          <p className="mt-10 text-ink-2">Signing in at fellowship? <Link href="/attend" className="link-arrow">Fellowship sign-in</Link></p>
+          <p className="mt-10 text-ink-2">Signing in at a meeting? <Link href="/attend" className="link-arrow">Meeting sign-in</Link></p>
         </div>
       </section>
     </>

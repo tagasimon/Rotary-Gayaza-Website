@@ -26,7 +26,7 @@ Self-hosted: Docker / Docker Compose / Coolify. No Firebase, no Vercel-only feat
 | Stories of Service | `/stories/[slug]` | Magazine layout, gallery, sharing, source attribution |
 | Photographs | `/gallery/[slug]` | Paginated albums, full-screen lightbox |
 | Contact | `/contact` | Form (honeypot + rate limit), map, X follow card |
-| Fellowship sign-in | `/attend` | The permanent-QR attendance form (member or guest, Rotarian or Rotaractor, club, name, email, phone) |
+| Meeting sign-in | `/attend` | The permanent-QR attendance form (member or guest; guests also give Rotarian or Rotaractor and their club; name, email, phone) |
 | Admin | `/admin` | A short menu: Dashboard, Attendance, Events, Projects, News & stories, Media appearances, Sponsors, Photos, Discovered online. Everything else is under "More" |
 
 ## Content provenance (read this before editing content)
@@ -69,7 +69,7 @@ There is **one permanent QR code**. It never changes, so print it once (**Admin 
 1. Someone scans the code. It opens **`/attend`**, a short form on the website.
 2. They answer:
    - member of RC Gayaza, or guest
-   - Rotarian, or Rotaractor
+   - if a guest, Rotarian or Rotaractor (members are recorded as Rotarians)
    - if a guest, **which club** (required: a searchable dropdown of about 570 Rotary and Rotaract clubs in Districts 9213 and 9214, filtered by Rotarian/Rotaractor, with a "my club isn't listed" option)
    - full name, email and phone (at least one of the last two)
 3. The sign-in is recorded against **that day's fellowship**, which is created automatically. Fellowship is every Sunday; a sign-in on another day goes to a "Club gathering" for that day. If the club has published an event for that day, the meeting takes its title.

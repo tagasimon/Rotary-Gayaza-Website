@@ -5,7 +5,7 @@ import { Wordmark } from "./Wordmark";
 const LINKS = [
   ["/our-story", "Our Story"], ["/projects", "Projects"], ["/impact", "Impact"], ["/events", "Events"],
   ["/rotary-family", "Rotary Family"], ["/stories", "News & stories"], ["/district-governor", "Governor's Visits"], ["/leadership", "Leadership"],
-  ["/gallery", "Photographs"], ["/contact", "Contact"], ["/attend", "Fellowship sign-in"],
+  ["/gallery", "Photographs"], ["/contact", "Contact"], ["/attend", "Meeting sign-in"],
 ] as const;
 
 export function Footer({ club }: { club: Club }) {
@@ -25,7 +25,7 @@ export function Footer({ club }: { club: Club }) {
             <span className="block">{club.venue}</span>
             {club.address && <span className="block text-white/65">{club.address}</span>}
           </p>
-          <Link href="/attend" className="btn btn-gold mt-6 !min-h-0 !py-2.5">Fellowship sign-in</Link>
+          <Link href="/attend" className="btn btn-gold mt-6 !min-h-0 !py-2.5">Meeting sign-in</Link>
         </div>
         <nav aria-label="Footer" className="md:col-span-5">
           <p className="eyebrow text-gold">Explore</p>

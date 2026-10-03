@@ -33,7 +33,7 @@ export function MobileNav({ items, onDark }: { items: { href: string; label: str
               ))}
             </ul>
             <div className="mt-8 flex flex-col gap-3">
-              <Link href="/attend" className="btn btn-gold">Fellowship sign-in</Link>
+              <Link href="/attend" className="btn btn-gold">Meeting sign-in</Link>
               <Link href="/contact?interest=join" className="btn btn-ghost text-white">Join / get involved</Link>
             </div>
           </nav>

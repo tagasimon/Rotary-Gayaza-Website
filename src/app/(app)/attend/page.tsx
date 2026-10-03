@@ -4,7 +4,7 @@ import { formatDate } from "@/lib/time";
 import { localParts } from "@/lib/time";
 import { AttendForm } from "./AttendForm";
 
-export const metadata: Metadata = { title: "Fellowship sign-in", description: "Sign in to today's Rotary Club of Gayaza fellowship.", robots: { index: false } };
+export const metadata: Metadata = { title: "Meeting sign-in", description: "Sign in to today's Rotary Club of Gayaza meeting.", robots: { index: false } };
 
 export default async function AttendPage() {
   const now = new Date();

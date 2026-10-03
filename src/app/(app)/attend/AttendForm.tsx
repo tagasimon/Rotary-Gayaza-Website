@@ -150,6 +150,7 @@ export function AttendForm() {
           <Choice name="status" value="guest" checked={status === "guest"} onChange={setStatus} title="No, I'm a guest" hint="Visiting from another club" />
         </div>
       </fieldset>
+      {status === "guest" && (
       <fieldset>
         <legend className="label">Are you a Rotarian or a Rotaractor?</legend>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -157,6 +158,7 @@ export function AttendForm() {
           <Choice name="affiliation" value="ROTARACTOR" checked={affiliation === "ROTARACTOR"} onChange={setAffiliation} title="Rotaractor" />
         </div>
       </fieldset>
+      )}
       {status === "guest" && (
         <div className="rounded-lg border-l-4 border-gold bg-white p-4">
           <label className="label" htmlFor="club">Which club are you visiting from? <span className="text-cranberry">*</span></label>

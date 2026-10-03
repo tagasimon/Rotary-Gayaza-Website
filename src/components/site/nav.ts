@@ -11,5 +11,5 @@ export const SECONDARY_NAV = [
   { href: "/district-governor", label: "Governor's visits" },
   { href: "/leadership", label: "Leadership" },
   { href: "/gallery", label: "Photographs" },
-  { href: "/attend", label: "Fellowship sign-in" },
+  { href: "/attend", label: "Meeting sign-in" },
 ];
