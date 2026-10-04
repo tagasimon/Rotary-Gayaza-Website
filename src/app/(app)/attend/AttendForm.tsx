@@ -147,7 +147,7 @@ export function AttendForm() {
         <legend className="label">Are you a member of RC Gayaza?</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           <Choice name="status" value="member" checked={status === "member"} onChange={setStatus} title="Yes, I'm a member" hint="Rotary Club of Gayaza" />
-          <Choice name="status" value="guest" checked={status === "guest"} onChange={setStatus} title="No, I am visiting" hint="A guest at today's meeting" />
+          <Choice name="status" value="guest" checked={status === "guest"} onChange={setStatus} title="No, I am visiting" hint="To learn more about Rotary International" />
         </div>
       </fieldset>
       {status === "guest" && (
