@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "./db";
 import clubsList from "@/data/clubs.json";
 
-export type Who = { members: number; guests: number; rotarians: number; rotaractors: number; total: number };
+export type Who = { members: number; guests: number; rotarians: number; rotaractors: number; prospects: number; total: number };
 export const tally = (rows: { isGuest: boolean; affiliation: string | null; memberId: string | null; guestName: string | null; name: string | null }[]): Who => {
   const guest = (r: (typeof rows)[number]) => r.isGuest || (!r.memberId && !!r.guestName && !r.name);
   return {
@@ -10,6 +10,7 @@ export const tally = (rows: { isGuest: boolean; affiliation: string | null; memb
     guests: rows.filter(guest).length,
     rotarians: rows.filter((r) => r.affiliation === "ROTARIAN").length,
     rotaractors: rows.filter((r) => r.affiliation === "ROTARACTOR").length,
+    prospects: rows.filter((r) => r.affiliation === "PROSPECT").length,
     total: rows.length,
   };
 };
@@ -39,6 +40,7 @@ export function guestsByClub(rows: (GuestRow & { date?: Date })[]): ClubTally[] 
   for (const r of rows) {
     const legacyGuest = !r.memberId && !!r.guestName && !r.name;
     if (!r.isGuest && !legacyGuest) continue;
+    if (r.affiliation === "PROSPECT") continue; // prospects have no club
     const raw = (r.clubName || r.guestClub || "").trim();
     const name = raw || "Club not given";
     const key = name.toLowerCase().replace(/\s+/g, " ");

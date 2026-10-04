@@ -50,14 +50,14 @@ export default async function Attendance({ searchParams }: { searchParams: Promi
             <h2 className="border-b border-ink/10 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-royal">Fellowships</h2>
             {meetings.length === 0 ? <div className="p-8"><Empty>No sign-ins yet. Print the QR code and put it up at Sunday&rsquo;s fellowship.</Empty></div> : (
               <table className="w-full text-sm">
-                <thead className="text-left text-xs uppercase tracking-wide text-muted"><tr><th className="px-4 py-2">Date</th><th className="px-2 py-2">Meeting</th><th className="px-2 py-2 text-right">Members</th><th className="px-2 py-2 text-right">Guests</th><th className="px-2 py-2 text-right">Rotarians</th><th className="px-2 py-2 text-right">Rotaractors</th><th className="px-2 py-2 text-right">Clubs</th><th className="px-4 py-2 text-right">Total</th></tr></thead>
+                <thead className="text-left text-xs uppercase tracking-wide text-muted"><tr><th className="px-4 py-2">Date</th><th className="px-2 py-2">Meeting</th><th className="px-2 py-2 text-right">Members</th><th className="px-2 py-2 text-right">Guests</th><th className="px-2 py-2 text-right">Rotarians</th><th className="px-2 py-2 text-right">Rotaractors</th><th className="px-2 py-2 text-right">Prospects</th><th className="px-2 py-2 text-right">Clubs</th><th className="px-4 py-2 text-right">Total</th></tr></thead>
                 <tbody>
                   {meetings.map((m) => (
                     <tr key={m.id} className="border-t border-ink/5 hover:bg-paper-2">
                       <td className="whitespace-nowrap px-4 py-2"><Link href={`/admin/attendance/${m.id}`} className="font-semibold text-royal hover:underline">{formatDate(m.date, "short")}</Link></td>
                       <td className="px-2 py-2">{m.title}</td>
                       <td className="px-2 py-2 text-right tabular-nums">{m.members}</td><td className="px-2 py-2 text-right tabular-nums">{m.guests}</td>
-                      <td className="px-2 py-2 text-right tabular-nums">{m.rotarians}</td><td className="px-2 py-2 text-right tabular-nums">{m.rotaractors}</td><td className="px-2 py-2 text-right tabular-nums" title={m.clubs.join(", ")}>{m.clubs.length}</td>
+                      <td className="px-2 py-2 text-right tabular-nums">{m.rotarians}</td><td className="px-2 py-2 text-right tabular-nums">{m.rotaractors}</td><td className="px-2 py-2 text-right tabular-nums">{m.prospects}</td><td className="px-2 py-2 text-right tabular-nums" title={m.clubs.join(", ")}>{m.clubs.length}</td>
                       <td className="px-4 py-2 text-right font-semibold tabular-nums">{m.total}</td>
                     </tr>
                   ))}

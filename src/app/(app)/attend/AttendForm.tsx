@@ -133,7 +133,7 @@ export function AttendForm() {
         <span aria-hidden className="grid h-12 w-12 place-items-center rounded-full bg-white text-2xl text-royal">✓</span>
         <p className="display mt-5 text-[1.8rem] leading-tight">{state.duplicate ? "You're already signed in." : `Welcome, ${state.name}.`}</p>
         <p className="mt-2 font-sans text-white/75">{state.meeting} · {state.when}</p>
-        <p className="mt-4 font-sans text-sm text-white/60">{state.duplicate ? "We've updated your details." : "Thank you for joining us. Enjoy the meeting."}{state.emailed && !state.duplicate ? (status === "guest" ? " We've emailed you a thank-you note with your make-up card." : " We've emailed you a thank-you note.") : ""}</p>
+        <p className="mt-4 font-sans text-sm text-white/60">{state.duplicate ? "We've updated your details." : "Thank you for joining us. Enjoy the meeting."}{state.emailed && !state.duplicate ? (status === "guest" && affiliation !== "PROSPECT" ? " We've emailed you a thank-you note with your make-up card." : " We've emailed you a thank-you note.") : ""}</p>
       </div>
     );
   }
@@ -147,19 +147,20 @@ export function AttendForm() {
         <legend className="label">Are you a member of RC Gayaza?</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           <Choice name="status" value="member" checked={status === "member"} onChange={setStatus} title="Yes, I'm a member" hint="Rotary Club of Gayaza" />
-          <Choice name="status" value="guest" checked={status === "guest"} onChange={setStatus} title="No, I'm a guest" hint="Visiting from another club" />
+          <Choice name="status" value="guest" checked={status === "guest"} onChange={setStatus} title="No, I am visiting" hint="A guest at today's meeting" />
         </div>
       </fieldset>
       {status === "guest" && (
       <fieldset>
-        <legend className="label">Are you a Rotarian or a Rotaractor?</legend>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Choice name="affiliation" value="ROTARIAN" checked={affiliation === "ROTARIAN"} onChange={setAffiliation} title="Rotarian" />
-          <Choice name="affiliation" value="ROTARACTOR" checked={affiliation === "ROTARACTOR"} onChange={setAffiliation} title="Rotaractor" />
+        <legend className="label">Which best describes you?</legend>
+        <div className="grid gap-2">
+          <Choice name="affiliation" value="ROTARIAN" checked={affiliation === "ROTARIAN"} onChange={setAffiliation} title="Visiting Rotarian" hint="A member of another Rotary club" />
+          <Choice name="affiliation" value="ROTARACTOR" checked={affiliation === "ROTARACTOR"} onChange={setAffiliation} title="Visiting Rotaractor" hint="A member of a Rotaract club" />
+          <Choice name="affiliation" value="PROSPECT" checked={affiliation === "PROSPECT"} onChange={setAffiliation} title="Prospect (Guest)" hint="Not yet in Rotary or Rotaract, finding out more" />
         </div>
       </fieldset>
       )}
-      {status === "guest" && (
+      {status === "guest" && (affiliation === "ROTARIAN" || affiliation === "ROTARACTOR") && (
         <div className="rounded-lg border-l-4 border-gold bg-white p-4">
           <label className="label" htmlFor="club">Which club are you visiting from? <span className="text-cranberry">*</span></label>
           <ClubSelect affiliation={affiliation} value={club} onChange={setClub} />

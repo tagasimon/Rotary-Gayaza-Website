@@ -6,8 +6,8 @@ export function AddAttendee({ action }: { action: (s: { error?: string; ok?: boo
     <form action={act} className="grid gap-2">
       <input name="name" placeholder="Full name" className="field" required />
       <div className="grid grid-cols-2 gap-2">
-        <select name="isGuest" className="field"><option value="member">Member</option><option value="guest">Guest</option></select>
-        <select name="affiliation" className="field"><option value="ROTARIAN">Rotarian</option><option value="ROTARACTOR">Rotaractor</option></select>
+        <select name="isGuest" className="field"><option value="member">Member</option><option value="guest">Visiting</option></select>
+        <select name="affiliation" className="field"><option value="ROTARIAN">Rotarian</option><option value="ROTARACTOR">Rotaractor</option><option value="PROSPECT">Prospect (guest)</option></select>
       </div>
       <input name="club" placeholder="Club (guests)" className="field" />
       <div className="grid grid-cols-2 gap-2"><input name="email" placeholder="Email" className="field" /><input name="phone" placeholder="Phone" className="field" /></div>

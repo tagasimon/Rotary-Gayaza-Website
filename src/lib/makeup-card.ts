@@ -20,7 +20,6 @@ export type MakeupCardInput = {
   district: string;
   clubId?: string | null;
   cardNumber: string;
-  signatory?: { name: string; role: string } | null;
 };
 
 /** Keep only characters the built-in PDF fonts can draw (accents are folded, e.g. "é" → "e"). */
@@ -97,12 +96,11 @@ export async function makeupCardPdf(c: MakeupCardInput): Promise<Uint8Array> {
   page.drawText(S(c.meetingTitle, bold).slice(0, 90), { x: x + 16, y: y - 8, size: 12, font: bold, color: ROYAL });
   page.drawText(S(`${c.meetingDate}  ·  ${c.venue}`).slice(0, 110), { x: x + 16, y: y - 26, size: 10, font: reg, color: INK });
 
-  // footer: issuer
+  // footer: no signature; the card is issued from the attendance register
   const fy = 54;
-  page.drawLine({ start: { x, y: fy + 22 }, end: { x: x + 200, y: fy + 22 }, thickness: 0.8, color: MUTED });
-  page.drawText(S(c.signatory?.name ?? "Club Secretary", bold), { x, y: fy + 8, size: 10, font: bold, color: INK });
-  page.drawText(S(c.signatory ? `${c.signatory.role}, ${c.hostClub}` : c.hostClub), { x, y: fy - 5, size: 8.5, font: reg, color: MUTED });
-  page.drawText("Issued from the club's attendance register.", { x, y: fy - 17, size: 7.5, font: ital, color: MUTED });
+  page.drawText(S(c.hostClub, bold), { x, y: fy + 4, size: 10, font: bold, color: INK });
+  page.drawText(S(`Rotary District ${c.district}`), { x, y: fy - 9, size: 8.5, font: reg, color: MUTED });
+  page.drawText("Issued electronically from the club's attendance register.", { x, y: fy - 21, size: 7.5, font: ital, color: MUTED });
   const motto = "Service Above Self";
   page.drawText(motto, { x: W - 40 - ital.widthOfTextAtSize(motto, 12), y: fy, size: 12, font: ital, color: ROYAL });
 

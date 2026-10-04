@@ -13,21 +13,23 @@ export const cardNumber = (recordId: string, date: Date) => `RCG-${localParts(da
 async function load(recordId: string) {
   const r = await db.attendanceRecord.findUnique({ where: { id: recordId }, include: { meeting: true, member: { select: { fullName: true } } } });
   if (!r) return null;
-  const [club, secretary, next] = await Promise.all([
+  const [club, next] = await Promise.all([
     db.club.findFirst({ where: { isHome: true } }),
-    db.member.findFirst({ where: { rotaryRole: { equals: "Secretary", mode: "insensitive" }, status: { in: ["ACTIVE", "HONORARY"] } }, select: { fullName: true } }),
     db.event.findFirst({
       where: { status: "APPROVED", scope: "CLUB", startsAt: { gt: new Date(`${localParts(r.meeting.date).ymd}T23:59:59+03:00`) } },
       orderBy: { startsAt: "asc" }, select: { title: true, slug: true, startsAt: true, venue: true },
     }),
   ]);
-  return { r, club, secretary, next };
+  return { r, club, next };
 }
+
+/** Make-up cards are for visiting Rotarians and Rotaractors (not members, not prospects). */
+export const getsMakeupCard = (r: { isGuest: boolean; affiliation: string | null }) => r.isGuest && r.affiliation !== "PROSPECT";
 
 export async function buildMakeupCard(recordId: string) {
   const d = await load(recordId);
   if (!d) return null;
-  const { r, club, secretary } = d;
+  const { r, club } = d;
   const name = r.name || r.member?.fullName || r.guestName || "Guest";
   return {
     filename: `make-up-card-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${localParts(r.meeting.date).ymd}.pdf`,
@@ -36,7 +38,6 @@ export async function buildMakeupCard(recordId: string) {
       meetingTitle: r.meeting.title, meetingDate: formatDate(r.meeting.date, "day"),
       venue: r.meeting.venue || club?.venue || "Gayaza, Uganda", hostClub: club?.name ?? "Rotary Club of Gayaza",
       district: club?.district ?? "9213", clubId: club?.clubNumber, cardNumber: cardNumber(r.id, r.meeting.date),
-      signatory: secretary ? { name: secretary.fullName, role: "Club Secretary" } : null,
     }),
   };
 }
@@ -77,10 +78,28 @@ export async function composeAttendanceEmail(recordId: string) {
 <p style="margin:6px 0 2px;font-size:16px;font-weight:700"><a href="${site}/events/${esc(next.slug)}" style="color:#17458f;text-decoration:none">${esc(next.title)}</a></p>
 <p style="margin:0;font-size:14px;color:#2c3f63">${esc(formatDate(next.startsAt, "day"))} · ${esc(formatTime(next.startsAt))}${next.venue ? ` · ${esc(next.venue)}` : ""}</p></td></tr></table></td></tr>` : "";
 
+  if (r.isGuest && r.affiliation === "PROSPECT") {
+    return {
+      to: r.email!, isGuest: true, card: false,
+      subject: "Thank you for visiting the Rotary Club of Gayaza",
+      html: layout({
+        preheader: "Thank you for joining us. Here is how to get involved.",
+        heading: `Thank you for visiting, ${first}.`,
+        paragraphs: [
+          `It was a pleasure to have you with us at <strong>${meeting}</strong> on ${when}. We hope you enjoyed meeting our members and hearing about our work in Gayaza.`,
+          `Rotary brings together people who want to make a lasting difference in their community. If you would like to find out more about joining, simply reply to this email or <a href="${site}/contact?interest=join" style="color:#17458f">get in touch on our website</a>.`,
+          `You are always welcome back. We meet ${weekly}.`,
+        ],
+        extra: nextBlock,
+      }),
+      text: `Thank you for visiting, ${fullName.split(/\s+/)[0]}.\n\nIt was a pleasure to have you with us at ${r.meeting.title} on ${formatDate(r.meeting.date, "day")}. If you would like to find out more about joining Rotary, reply to this email or visit ${site}/contact?interest=join.\n\nYou are always welcome back. We meet ${club ? `every ${club.meetingDay} at ${club.meetingTime}, ${club.venue}` : "every Sunday"}.${next ? `\n\nComing up: ${next.title}, ${formatDate(next.startsAt, "day")} ${formatTime(next.startsAt)}.` : ""}\n\nRotary Club of Gayaza\n${site}`,
+      replyTo: club?.email,
+    };
+  }
   if (r.isGuest) {
     const home = esc(r.clubName || r.guestClub || "your club");
     return {
-      to: r.email!, isGuest: true,
+      to: r.email!, isGuest: true, card: true,
       subject: "Thank you for visiting the Rotary Club of Gayaza",
       html: layout({
         preheader: `Your make-up card for ${formatDate(r.meeting.date, "short")} is attached.`,
@@ -97,7 +116,7 @@ export async function composeAttendanceEmail(recordId: string) {
     };
   }
   return {
-    to: r.email!, isGuest: false,
+    to: r.email!, isGuest: false, card: false,
     subject: "Thank you for attending today's meeting",
     html: layout({
       preheader: `Your attendance on ${formatDate(r.meeting.date, "short")} has been recorded.`,
@@ -114,7 +133,7 @@ export async function composeAttendanceEmail(recordId: string) {
 }
 
 /**
- * Sends the thank-you email for one sign-in (guests also get the PDF make-up card).
+ * Sends the thank-you email for one sign-in (visiting Rotarians/Rotaractors also get the PDF make-up card).
  * Skips silently when emails aren't configured, the person gave no email, or it was already sent
  * (unless `force`, used by the admin "Send again" button). Never throws.
  */
@@ -129,7 +148,7 @@ export async function sendAttendanceEmail(recordId: string, { force = false } = 
     }
     const mail = await composeAttendanceEmail(recordId);
     if (!mail) return { status: "SKIPPED", error: "Sign-in not found" };
-    const card = mail.isGuest ? await buildMakeupCard(recordId) : null;
+    const card = mail.card ? await buildMakeupCard(recordId) : null;
     await sendEmail({
       to: mail.to, subject: mail.subject, html: mail.html, text: mail.text, replyTo: mail.replyTo,
       attachments: card ? [{ filename: card.filename, content: card.pdf }] : [],

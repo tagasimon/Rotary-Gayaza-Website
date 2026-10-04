@@ -18,8 +18,9 @@ export async function addRecord(meetingId: string, _: { error?: string; ok?: boo
   const name = String(form.get("name") ?? "").trim();
   if (name.length < 2) return { error: "Enter a name." };
   const isGuest = form.get("isGuest") === "guest";
-  const affiliation = form.get("affiliation") === "ROTARACTOR" ? "ROTARACTOR" : "ROTARIAN";
-  await db.attendanceRecord.create({ data: { meetingId, name, isGuest, affiliation, clubName: isGuest ? String(form.get("club") ?? "").trim() || null : "Rotary Club of Gayaza", email: String(form.get("email") ?? "").trim().toLowerCase() || null, phone: normPhone(String(form.get("phone") ?? "")) || null, method: "MANUAL", recordedById: u.id } });
+  const raw = String(form.get("affiliation") ?? "");
+  const affiliation = raw === "ROTARACTOR" || raw === "PROSPECT" ? raw : "ROTARIAN";
+  await db.attendanceRecord.create({ data: { meetingId, name, isGuest, affiliation, clubName: isGuest ? (affiliation === "PROSPECT" ? null : String(form.get("club") ?? "").trim() || null) : "Rotary Club of Gayaza", email: String(form.get("email") ?? "").trim().toLowerCase() || null, phone: normPhone(String(form.get("phone") ?? "")) || null, method: "MANUAL", recordedById: u.id } });
   await audit(u, "manual-attendance", "AttendanceRecord", null, `Added ${name} manually`, { meetingId });
   revalidatePath(`/admin/attendance/${meetingId}`);
   return { ok: true };

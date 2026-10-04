@@ -24,7 +24,7 @@ export default async function MeetingAttendance({ params }: { params: Promise<{ 
     <>
       <p className="pt-2 text-sm"><Link href="/admin/attendance" className="text-muted underline">← Attendance</Link></p>
       <PageTitle title={m.title} subtitle={formatDate(m.date, "day")} actions={<a href={`/admin/attendance/export?meeting=${m.id}`} className="btn btn-line !min-h-0 !py-2">Download CSV</a>} />
-      <div className="mb-6 grid gap-3 sm:grid-cols-5"><Stat label="Total" value={t.total} /><Stat label="Members" value={t.members} /><Stat label="Guests" value={t.guests} /><Stat label="Rotarians" value={t.rotarians} /><Stat label="Rotaractors" value={t.rotaractors} /></div>
+      <div className="mb-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-6"><Stat label="Total" value={t.total} /><Stat label="Members" value={t.members} /><Stat label="Guests" value={t.guests} /><Stat label="Rotarians" value={t.rotarians} /><Stat label="Rotaractors" value={t.rotaractors} /><Stat label="Prospects" value={t.prospects} /></div>
       <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
         <section className="card overflow-x-auto">
           <table className="w-full text-sm">
@@ -33,7 +33,7 @@ export default async function MeetingAttendance({ params }: { params: Promise<{ 
               {m.records.map((r) => (
                 <tr key={r.id} className="border-t border-ink/5 align-top">
                   <td className="px-4 py-2 font-semibold">{displayName(r)}</td>
-                  <td className="px-2 py-2 text-xs"><span className={r.isGuest ? "text-soil" : "text-leaf"}>{r.isGuest ? "Guest" : "Member"}</span>{r.affiliation && <span className="block text-muted">{r.affiliation === "ROTARACTOR" ? "Rotaractor" : "Rotarian"}</span>}</td>
+                  <td className="px-2 py-2 text-xs"><span className={r.isGuest ? "text-soil" : "text-leaf"}>{r.isGuest ? (r.affiliation === "PROSPECT" ? "Prospect" : "Visiting") : "Member"}</span>{r.affiliation && r.affiliation !== "PROSPECT" && <span className="block text-muted">{r.affiliation === "ROTARACTOR" ? "Rotaractor" : "Rotarian"}</span>}</td>
                   <td className="px-2 py-2 text-xs">{r.clubName ?? r.guestClub ?? "—"}</td>
                   <td className="px-2 py-2 text-xs">{r.email ?? "—"}</td>
                   <td className="whitespace-nowrap px-2 py-2 text-xs">{r.phone ?? r.guestPhone ?? "—"}</td>
@@ -49,7 +49,7 @@ export default async function MeetingAttendance({ params }: { params: Promise<{ 
                       </div>
                     )}
                     {r.email && <a href={`/admin/attendance/email-preview/${r.id}`} target="_blank" className="mt-1 block font-semibold text-royal underline">Preview email</a>}
-                    {r.isGuest && <a href={`/admin/attendance/card/${r.id}`} target="_blank" className="mt-1 block font-semibold text-azure underline">Make-up card (PDF)</a>}
+                    {r.isGuest && r.affiliation !== "PROSPECT" && <a href={`/admin/attendance/card/${r.id}`} target="_blank" className="mt-1 block font-semibold text-azure underline">Make-up card (PDF)</a>}
                   </td>
                   <td className="px-4 py-2 text-right"><ConfirmButton action={removeRecord.bind(null, m.id, r.id)} label="Remove" confirmText="Sure?" /></td>
                 </tr>
@@ -63,7 +63,7 @@ export default async function MeetingAttendance({ params }: { params: Promise<{ 
           <div className="card space-y-2 p-4">
             <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-royal">Thank-you emails</h2>
             {mailOn ? <>
-              <p className="text-xs text-muted">Sent automatically after each sign-in. Guests also get a PDF make-up card.</p>
+              <p className="text-xs text-muted">Sent automatically after each sign-in. Visiting Rotarians and Rotaractors also get a PDF make-up card.</p>
               {pending > 0 && <form action={emailAllPending.bind(null, m.id)}><PendingButton className="btn btn-royal !min-h-0 !py-2 text-xs">Send {pending} pending</PendingButton></form>}
             </> : <p className="text-xs text-muted">Off. Set <code>RESEND_API_KEY</code> (and <code>EMAIL_FROM</code>) in Coolify to turn them on.</p>}
           </div>

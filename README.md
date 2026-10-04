@@ -26,7 +26,7 @@ Self-hosted: Docker / Docker Compose / Coolify. No Firebase, no Vercel-only feat
 | Stories of Service | `/stories/[slug]` | Magazine layout, gallery, sharing, source attribution |
 | Photographs | `/gallery/[slug]` | Paginated albums, full-screen lightbox |
 | Contact | `/contact` | Form (honeypot + rate limit), map, X follow card |
-| Meeting sign-in | `/attend` | The permanent-QR attendance form (member or guest; guests also give Rotarian or Rotaractor and their club; name, email, phone) |
+| Meeting sign-in | `/attend` | The permanent-QR attendance form (member, or visiting Rotarian / visiting Rotaractor / prospect; visiting Rotarians and Rotaractors give their club; name, email, phone) |
 | Admin | `/admin` | A short menu: Dashboard, Attendance, Events, Projects, News & stories, Media appearances, Sponsors, Photos, Discovered online. Everything else is under "More" |
 
 ## Content provenance (read this before editing content)
@@ -69,8 +69,8 @@ There is **one permanent QR code**. It never changes, so print it once (**Admin 
 1. Someone scans the code. It opens **`/attend`**, a short form on the website.
 2. They answer:
    - member of RC Gayaza, or guest
-   - if a guest, Rotarian or Rotaractor (members are recorded as Rotarians)
-   - if a guest, **which club** (required: a searchable dropdown of about 570 Rotary and Rotaract clubs in Districts 9213 and 9214, filtered by Rotarian/Rotaractor, with a "my club isn't listed" option)
+   - if visiting: **Visiting Rotarian**, **Visiting Rotaractor** or **Prospect (guest)** (members are recorded as Rotarians)
+   - for visiting Rotarians and Rotaractors, **which club** (required: a searchable dropdown of about 570 Rotary and Rotaract clubs in Districts 9213 and 9214, filtered by Rotarian/Rotaractor, with a "my club isn't listed" option)
    - full name, email and phone (at least one of the last two)
 3. The sign-in is recorded against **that day's fellowship**, which is created automatically. Fellowship is every Sunday; a sign-in on another day goes to a "Club gathering" for that day. If the club has published an event for that day, the meeting takes its title.
 4. Signing in twice on the same day (same email or phone) updates the first entry instead of adding a duplicate.
@@ -81,11 +81,12 @@ There is **one permanent QR code**. It never changes, so print it once (**Admin 
 When someone signs in with an email address, the site emails them straight away through [Resend](https://resend.com), from `EMAIL_FROM` with replies going to the club email:
 
 * **Members** get a short thank-you for attending, with the next club event.
-* **Guests** get a thank-you for visiting plus a **PDF make-up card** (their name, home club, the meeting, date and venue, a card number and the Club Secretary's name), to give to their own club secretary.
+* **Visiting Rotarians and Rotaractors** get a thank-you for visiting plus a **PDF make-up card** (their name, home club, the meeting, date and venue and a card number; no signature needed), to give to their own club secretary.
+* **Prospects** get a thank-you for visiting with an invitation to find out more about joining (no make-up card).
 
 Set `RESEND_API_KEY` (a send-only key for the verified rotarygayaza.org domain) and `EMAIL_FROM` in Coolify. Without a key, sign-in works as before and no emails are sent. `ATTENDANCE_EMAILS=false` pauses them.
 
-Each fellowship page in **Admin → Attendance** shows each person's email status (sent, failed with the reason, or pending), with **Send now / Send again**, **Preview email**, **Make-up card (PDF)** for guests, and **Send pending** for anyone added by hand.
+Each fellowship page in **Admin → Attendance** shows each person's email status (sent, failed with the reason, or pending), with **Send now / Send again**, **Preview email**, **Make-up card (PDF)** for visiting Rotarians and Rotaractors, and **Send pending** for anyone added by hand.
 
 Scanning from outside the venue is allowed on purpose. There are no PINs or logins for members.
 

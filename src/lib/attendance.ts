@@ -45,7 +45,7 @@ export const normPhone = (p: string) => {
   return d;
 };
 
-export type CheckInInput = { name: string; email: string; phone: string; isGuest: boolean; affiliation: "ROTARIAN" | "ROTARACTOR"; clubName: string | null };
+export type CheckInInput = { name: string; email: string; phone: string; isGuest: boolean; affiliation: "ROTARIAN" | "ROTARACTOR" | "PROSPECT"; clubName: string | null };
 
 /** Records a sign-in; signing in twice on the same day updates the first record instead of duplicating. */
 export async function recordCheckIn(input: CheckInInput) {
