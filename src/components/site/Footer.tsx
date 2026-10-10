@@ -43,7 +43,7 @@ export function Footer({ club }: { club: Club }) {
       </div>
       <div className="border-t border-white/15">
         <div className="wrap flex flex-col justify-between gap-2 py-6 text-xs text-white/60 sm:flex-row">
-          <p>© {new Date().getFullYear()} Rotary Club of Gayaza. Service Above Self.</p>
+          <p>© {new Date().getFullYear()} Rotary Club of Gayaza. Service Above Self.<span className="mx-2 text-white/30" aria-hidden>·</span>Built by <a href="https://www.elastictech.biz" target="_blank" rel="noopener" className="font-semibold text-white/80 hover:text-gold">Elastic Technologies</a></p>
           <p>Facts on this site link to their sources. Spotted an error? <Link href="/contact?interest=correction" className="underline hover:text-gold">Tell us</Link> · <Link href="/admin" className="hover:text-gold">Club admin</Link></p>
         </div>
       </div>
