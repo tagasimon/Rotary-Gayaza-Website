@@ -9,7 +9,9 @@ export function ProjectFeature({ p, flip = false, index }: { p: Project; flip?: 
     <article className="grid items-center gap-6 md:grid-cols-12 md:gap-10">
       <Link href={`/projects/${p.slug}`} className={`group relative block aspect-[4/3] overflow-hidden bg-royal md:col-span-7 ${flip ? "md:order-2" : ""}`}>
         {p.heroImageUrl ? (
-          <Img src={p.heroImageUrl} alt="" fill sizes="(min-width: 768px) 58vw, 100vw" className="object-cover transition-transform duration-[1.2s] ease-[var(--ease-story)] group-hover:scale-[1.03]" />
+          <div data-sc-parallax="1.2" className="absolute inset-x-0 -top-[9%] h-[118%]">
+            <Img src={p.heroImageUrl} alt="" fill sizes="(min-width: 768px) 58vw, 100vw" className="object-cover transition-transform duration-[1.2s] ease-[var(--ease-story)] group-hover:scale-[1.03]" />
+          </div>
         ) : (
           <div className="absolute inset-0 grid place-items-center p-8">
             <p className="display text-center text-4xl leading-tight text-white/90 sm:text-5xl">{p.peopleReached || p.impactCategory || p.title}</p>

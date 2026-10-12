@@ -21,6 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-UG" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+        {/* without JavaScript, scroll-animated content is simply shown */}
+        <noscript><style>{"[data-sc-in],[data-sc-stagger]>*,[data-sc-cue]{opacity:1!important;transform:none!important}"}</style></noscript>
       </head>
       <body>{children}</body>
     </html>

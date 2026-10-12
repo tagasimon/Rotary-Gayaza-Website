@@ -50,7 +50,7 @@ export function Header({ logoUrl, overlay = false }: { logoUrl?: string | null; 
         clear
           ? "bg-gradient-to-b from-royal-ink/55 to-transparent"
           : scrolled
-            ? "bg-white/85 shadow-[0_8px_30px_-12px_rgba(15,52,116,.35)] backdrop-blur-md backdrop-saturate-150"
+            ? `bg-white/85 backdrop-blur-md backdrop-saturate-150 ${hidden ? "" : "shadow-[0_8px_30px_-12px_rgba(15,52,116,.35)]"}`
             : "bg-paper/70 backdrop-blur-md",
       ].join(" ")}
     >

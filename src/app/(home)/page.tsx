@@ -7,7 +7,6 @@ import { buildFamilyNodes } from "@/lib/family";
 import { Img } from "@/components/site/Img";
 import { Markdown } from "@/components/site/Markdown";
 import { SectionHeading } from "@/components/site/SectionHeading";
-import { CountUp } from "@/components/site/CountUp";
 import { Countdown } from "@/components/site/Countdown";
 import { FamilyTree } from "@/components/site/FamilyTree";
 import { Timeline } from "@/components/site/Timeline";
@@ -48,10 +47,12 @@ export default async function Home() {
       }} />
 
       {/* HERO */}
-      <section className="relative isolate flex min-h-[94svh] items-end overflow-hidden bg-royal-deep text-white" aria-labelledby="hero-title">
-        <Img src={hero?.imageUrl} alt="Members of the Rotary Club of Gayaza planting trees" fill priority sizes="100vw" className="-z-10 object-cover object-[50%_35%]" />
+      <section data-sc-act="flow" className="relative isolate flex min-h-[94svh] items-end overflow-hidden bg-royal-deep text-white" aria-labelledby="hero-title">
+        <div data-sc-parallax="1.8" className="absolute inset-x-0 -top-[12%] -z-10 h-[124%]">
+          <div className="hero-photo absolute inset-0"><Img src={hero?.imageUrl} alt="Members of the Rotary Club of Gayaza planting trees" fill priority sizes="100vw" className="object-cover object-[50%_35%]" /></div>
+        </div>
         <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(11,42,92,.55)_0%,rgba(23,69,143,.12)_35%,rgba(15,52,116,.82)_78%,#0f3474_100%)]" />
-        <svg aria-hidden className="absolute bottom-0 left-0 -z-10 h-48 w-full text-gold/50" viewBox="0 0 1440 200" preserveAspectRatio="none">
+        <svg aria-hidden data-sc-parallax="-0.9" className="absolute bottom-0 left-0 -z-10 h-48 w-full text-gold/50" viewBox="0 0 1440 200" preserveAspectRatio="none">
           <path d="M0 200 C 240 140, 420 190, 620 150 S 980 80, 1440 120" fill="none" stroke="currentColor" strokeWidth="1.2" />
           <path d="M0 180 C 300 170, 520 120, 760 140 S 1100 170, 1440 90" fill="none" stroke="currentColor" strokeWidth=".6" />
         </svg>
@@ -76,7 +77,7 @@ export default async function Home() {
         <div className="wrap">
           <div className="grid overflow-hidden rounded-2xl bg-royal text-white shadow-[0_30px_60px_-30px_rgba(12,42,92,.85)] ring-1 ring-white/10 md:grid-cols-12">
             {fe?.imageUrl && (
-              <Link href={`/events/${fe.slug}`} className="relative block aspect-square bg-white md:col-span-4 md:aspect-auto md:min-h-full">
+              <Link href={`/events/${fe.slug}`} data-sc-tilt="3" className="relative block aspect-square bg-white md:col-span-4 md:aspect-auto md:min-h-full">
                 <Img src={fe.imageUrl} alt={`Flyer: ${fe.title}`} fill className="object-contain" sizes="(min-width: 768px) 33vw, 100vw" />
               </Link>
             )}
@@ -112,7 +113,7 @@ export default async function Home() {
               <Link href="/our-story" className="link-arrow mt-2">Read our story</Link>
             </div>
             <aside className="md:col-span-3">
-              <dl className="space-y-5 border-l-2 border-gold pl-5 text-sm">
+              <dl data-sc-in data-sc-stagger="70" className="space-y-5 border-l-2 border-gold pl-5 text-sm">
                 <div><dt className="eyebrow text-azure">Chartered</dt><dd className="display mt-1 text-2xl text-royal">{club.charterDateLabel}</dd><dd className="text-muted">Club ID {club.clubNumber}</dd></div>
                 <div><dt className="eyebrow text-azure">We meet</dt><dd className="mt-1 font-semibold">{club.meetingDay}s, {club.meetingTime}</dd><dd className="serif text-ink-2">{club.venue}</dd></div>
                 <div><dt className="eyebrow text-azure">District</dt><dd className="mt-1 font-semibold">Rotary District {club.district}</dd></div>
@@ -128,10 +129,10 @@ export default async function Home() {
         <section className="border-y border-royal/10 bg-mist py-20 sm:py-28" aria-labelledby="impact-h">
           <div className="wrap">
             <SectionHeading id="impact-h" num="02" eyebrow="What we have done" title="Evidence, not adjectives." intro="Every number below says when it was counted and where it comes from." />
-            <ul className="grid gap-px overflow-hidden rounded-xl bg-royal/15 sm:grid-cols-2 lg:grid-cols-4">
-              {metrics.map((m, i) => (
-                <Reveal as="li" key={m.id} delay={i * 0.08} className="flex flex-col bg-white p-6 sm:p-8">
-                  <span className="display text-6xl font-extrabold leading-none text-royal sm:text-7xl"><CountUp display={m.value} to={m.numericValue} /></span>
+            <ul data-sc-in data-sc-stagger="80" className="grid gap-px overflow-hidden rounded-xl bg-royal/15 sm:grid-cols-2 lg:grid-cols-4">
+              {metrics.map((m) => (
+                <li key={m.id} className="flex flex-col bg-white p-6 sm:p-8">
+                  <span className="display text-6xl font-extrabold leading-none text-royal sm:text-7xl"><Counted value={m.value} n={m.numericValue} /></span>
                   <span aria-hidden className="mt-4 block h-[3px] w-10 bg-gold" />
                   <span className="serif mt-4 text-lg leading-snug text-ink">{m.label}</span>
                   <span className="mt-auto pt-6 text-xs text-muted">
@@ -139,7 +140,7 @@ export default async function Home() {
                     {" · "}
                     {m.sourceUrl ? <a href={m.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-royal">{m.sourceLabel ?? hostOf(m.sourceUrl)} ↗</a> : "Club records"}
                   </span>
-                </Reveal>
+                </li>
               ))}
             </ul>
             <Link href="/impact" className="link-arrow mt-8">Explore our impact by area</Link>
@@ -153,7 +154,7 @@ export default async function Home() {
           <div className="wrap">
             <SectionHeading id="projects-h" num="03" eyebrow="Project stories" title="The work, up close." intro="The challenge, what members did and who was reached." />
             <div className="space-y-20 sm:space-y-28">
-              {featured.map((p, i) => <Reveal key={p.id}><ProjectFeature p={p} flip={i % 2 === 1} index={i} /></Reveal>)}
+              {featured.map((p, i) => <div key={p.id} data-sc-act="flow" data-sc-in><ProjectFeature p={p} flip={i % 2 === 1} index={i} /></div>)}
             </div>
             <div className="mt-16 text-center"><Link href="/projects" className="btn btn-line">All projects</Link></div>
           </div>
@@ -161,9 +162,9 @@ export default async function Home() {
       )}
 
       {/* 04 ROTARY FAMILY */}
-      <section className="band-royal relative overflow-hidden py-24 text-white sm:py-32" aria-labelledby="family-h">
+      <section data-sc-act="flow" className="band-royal relative overflow-hidden py-24 text-white sm:py-32" aria-labelledby="family-h">
         <div className="wrap">
-          <SectionHeading id="family-h" num="04" tone="light" eyebrow="Our Rotary family" title="One club can create many more."
+          <SectionHeading id="family-h" num="04" tone="light" kinetic eyebrow="Our Rotary family" title="One club can create many more."
             intro="Two clubs helped Gayaza take root. Gayaza has since mothered the Rotaract Clubs of Gayaza, Gayaza Football, Manyangwa Football and Bugema, and supported Interact and Rotaract clubs in local schools." />
           <FamilyTree nodes={family.nodes} centre={family.centre} />
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-6 text-sm text-white/70">
@@ -174,11 +175,14 @@ export default async function Home() {
       </section>
 
       {/* 05 TIMELINE */}
-      <section className="grain py-24 sm:py-32" aria-labelledby="time-h">
-        <div className="wrap">
-          <SectionHeading id="time-h" num="05" eyebrow="2021 → Today → Next" title="A short history, still being written." />
-          <Timeline items={timeline.map((t) => ({ id: t.id, dateLabel: t.dateLabel, title: t.title, description: t.description, kind: t.kind, href: t.linkUrl, upcoming: t.date > now, pending: t.verification !== "VERIFIED", sourceUrl: t.sourceUrl, sourceLabel: t.sourceLabel }))} />
-          <Link href="/our-story" className="link-arrow mt-4">Read our story</Link>
+      {/* Signature move: the section holds still while 2021 → today → next travels sideways under the reader's scroll */}
+      <section data-sc-act="pan" data-sc-span="3.2" className="grain" aria-labelledby="time-h">
+        <div data-sc-stage className="flex flex-col justify-center py-10">
+          <div className="wrap">
+            <SectionHeading id="time-h" num="05" eyebrow="2021 → Today → Next" title="A short history, still being written." />
+          </div>
+          <Timeline pan items={timeline.map((t) => ({ id: t.id, dateLabel: t.dateLabel, title: t.title, description: t.description, kind: t.kind, href: t.linkUrl, upcoming: t.date > now, pending: t.verification !== "VERIFIED", sourceUrl: t.sourceUrl, sourceLabel: t.sourceLabel }))} />
+          <div className="wrap"><Link href="/our-story" className="link-arrow mt-4">Read our story</Link></div>
         </div>
       </section>
 
@@ -186,7 +190,7 @@ export default async function Home() {
       <section className="border-t border-royal/10 bg-mist py-24 sm:py-28" aria-labelledby="events-h">
         <div className="wrap">
           <SectionHeading id="events-h" num="06" eyebrow="What's happening" title="Come and see for yourself." intro="Our own events, the wider District 9213 calendar and Rotary community fellowships, kept separate so you can tell them apart." />
-          <div className="grid gap-12 lg:grid-cols-3">
+          <div data-sc-in data-sc-stagger="80" className="grid gap-12 lg:grid-cols-3">
             {([["Our events", ourEvents, "CLUB"], ["District events", districtEvents, "DISTRICT"], ["Rotary community", communityEvents, "COMMUNITY"]] as const).map(([label, list, key]) => (
               <div key={key}>
                 <h3 className="eyebrow mb-2 text-royal">{label}</h3>
@@ -237,15 +241,15 @@ export default async function Home() {
         <section className="border-t border-royal/10 bg-mist py-24" aria-labelledby="press-h">
           <div className="wrap">
             <SectionHeading id="press-h" num="08" eyebrow="In the news" title="What others are saying." />
-            <ul className="grid gap-6 md:grid-cols-3">
-              {press.map((m, i) => (
-                <Reveal as="li" key={m.id} delay={i * 0.08} className="flex flex-col rounded-xl border-t-4 border-gold bg-white p-6 shadow-[0_20px_40px_-30px_rgba(15,52,116,.6)]">
+            <ul data-sc-in data-sc-stagger="80" className="grid gap-6 md:grid-cols-3">
+              {press.map((m) => (
+                <li key={m.id} className="flex flex-col rounded-xl border-t-4 border-gold bg-white p-6 shadow-[0_20px_40px_-30px_rgba(15,52,116,.6)]">
                   <p className="eyebrow text-azure">{m.outlet}{m.date ? ` · ${formatDate(m.date, "short")}` : ""}</p>
                   <p className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-muted">{m.kind === "video" ? "▶ Video" : "Article"}{m.language ? ` · ${m.language}` : ""}</p>
                   <a href={m.url} target="_blank" rel="noopener noreferrer" className="display mt-4 block text-xl leading-snug text-royal hover:text-azure">{m.title} ↗</a>
                   {m.titleEnglish && <p className="serif mt-2 text-sm italic text-muted">“{m.titleEnglish}”</p>}
                   {m.summary && <p className="serif mt-3 text-[0.95rem] leading-relaxed text-ink-2">{excerpt(m.summary, 220)}</p>}
-                </Reveal>
+                </li>
               ))}
             </ul>
           </div>
@@ -269,7 +273,7 @@ export default async function Home() {
         <section className="py-20" aria-labelledby="sponsors-h">
           <div className="wrap">
             <SectionHeading id="sponsors-h" eyebrow="With thanks" title="Our sponsors." align="center" intro="Businesses and institutions that make our service possible." />
-            <ul className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <ul data-sc-in data-sc-stagger="60" className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {sponsors.map((sp) => {
                 const inner = sp.logoUrl
                   ? // eslint-disable-next-line @next/next/no-img-element
@@ -303,13 +307,13 @@ export default async function Home() {
       )}
 
       {/* 10 JOIN */}
-      <section className="relative overflow-hidden bg-gold py-24 text-royal-ink sm:py-32" aria-labelledby="join-h">
+      <section data-sc-act="flow" className="relative overflow-hidden bg-gold py-24 text-royal-ink sm:py-32" aria-labelledby="join-h">
         <svg aria-hidden className="absolute -right-24 -top-24 h-[480px] w-[480px] text-royal/15" viewBox="0 0 200 200"><path d="M100 200 C100 140 100 120 100 100 M100 100 C 80 70 50 60 20 40 M100 100 C 120 70 150 60 180 40 M100 120 C 70 110 40 115 10 100 M100 120 C 130 110 160 115 190 100 M100 80 C 100 50 95 30 100 0" stroke="currentColor" strokeWidth="1.5" fill="none" /></svg>
         <div className="wrap relative">
           <p className="eyebrow text-royal">10 · {join?.eyebrow ?? "Get involved"}</p>
-          <h2 id="join-h" className="mt-4 max-w-3xl text-5xl font-extrabold leading-[1.02] sm:text-7xl">{join?.title ?? "There is a seat for you on Sunday."}</h2>
+          <h2 id="join-h" data-sc-cue="0.08" data-sc-kinetic="lines" className="mt-4 max-w-3xl text-5xl font-extrabold leading-[1.02] sm:text-7xl">{join?.title ?? "There is a seat for you on Sunday."}</h2>
           {join?.body && <p className="serif mt-6 max-w-xl text-lg">{join.body}</p>}
-          <ul className="mt-12 grid gap-px overflow-hidden rounded-xl bg-royal/15 sm:grid-cols-2 lg:grid-cols-3">
+          <ul data-sc-in data-sc-stagger="60" className="mt-12 grid gap-px overflow-hidden rounded-xl bg-royal/15 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["Attend a fellowship", `${club.meetingDay}s, ${club.meetingTime} at ${club.venue}.`, "/contact?interest=visit"],
               ["Sign in at a meeting", "Scan the QR code at the door, or use this link on the day.", "/attend"],
@@ -331,4 +335,11 @@ export default async function Home() {
       </section>
     </>
   );
+}
+
+/** A real, sourced figure that ticks up once on entry (scrollcraft count). Non-numeric values render as-is. */
+function Counted({ value, n }: { value: string; n: number | null }) {
+  const m = value.match(/^(\D*)([\d,.]+)(.*)$/);
+  if (!m || !n || n < 5) return <>{value}</>;
+  return <span aria-label={value}><span aria-hidden>{m[1]}<span data-sc-count={`0 ${m[2]}`}>{m[2]}</span>{m[3]}</span></span>;
 }

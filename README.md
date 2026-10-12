@@ -133,6 +133,7 @@ Important actions (logins, saves, deletes, approvals, exports, manual attendance
 * Fonts follow the [Rotary Brand Center typography guidance](https://brandcenter.rotary.org/en-GB/Brand-elements/Typography): **Open Sans** (the free alternative to Frutiger) for headlines and navigation, and **Georgia** (the free alternative to Sentinel) for body text and captions. Open Sans is self-hosted. Devices without Georgia get the self-hosted, metric-compatible Gelasio. There are no Google Fonts calls.
 * The official **Rotary Club of Gayaza** logo (`public/brand/rc-gayaza-logo.png`) is always used unchanged. Over photographs it sits on a white tile rather than being recoloured. The Rotary wheel is never redrawn.
 * The header is see-through over the homepage photo. Once you scroll it becomes a compact frosted bar, and it slides away when you scroll down and comes back when you scroll up.
+* Scroll animations use the vendored **scrollcraft** engine (MIT): layered hero, counting impact numbers, a pinned sideways history timeline and staggered reveals. See [docs/SCROLL-ANIMATIONS.md](docs/SCROLL-ANIMATIONS.md).
 * Maps use **Leaflet + OpenStreetMap** tiles (no API key). Set `NEXT_PUBLIC_MAP_TILE_URL` to use another tile server.
 
 ## Project structure

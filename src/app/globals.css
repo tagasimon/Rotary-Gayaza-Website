@@ -1,4 +1,8 @@
+/* scrollcraft (vendored scroll engine) sits in the LOWEST cascade layer, declared before Tailwind's,
+   so every Tailwind/site rule wins over its page-wide defaults; only its data-sc-* devices take effect. */
+@layer scrollcraft;
 @import "tailwindcss";
+@import "../vendor/scrollcraft/scrollcraft.css" layer(scrollcraft);
 /* Rotary brand typefaces (brandcenter.rotary.org → Typography):
    primary  = Frutiger, free alternative Open Sans  → headlines and navigation
    secondary = Sentinel, free alternative Georgia    → body text, secondary headlines, captions
@@ -148,5 +152,24 @@ h2.text-xs, h3.text-xs { letter-spacing: 0.16em; }
   .js [data-reveal], .js [data-reveal-img] { opacity: 1; transform: none; clip-path: none; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ── scrollcraft theme: Rotary tokens (the engine is never edited) ─────────── */
+:root {
+  --sc-canvas: #f8f5ee; --sc-surface: #ffffff;
+  --sc-ink: #10264d; --sc-ink-soft: #2c3f63;
+  --sc-accent: #f7a81b; --sc-accent-ink: #0b2a5c;
+  --sc-font-display: "Open Sans Variable", "Frutiger", Arial, sans-serif;
+  --sc-font-text: "Open Sans Variable", "Frutiger", Arial, sans-serif;
+  --sc-shadow-color: 218 70% 18%;
+}
+/* Hero depth: the photo eases in very slightly as it recedes (driven by the act's --sc-p) */
+.hero-photo { transform: scale(calc(1.04 + (var(--sc-p, .5) - .5) * .08)); transform-origin: 50% 35%; }
+/* Timeline as a pinned pan act: the soil line draws as you travel, items settle in sequence */
+.tl-pan .rail { transform: scaleX(var(--sc-p, 0)); transition: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .tl-pan li { opacity: clamp(.55, calc(var(--sc-p, 0) * var(--n) * 1.6 - var(--i) + 1.4), 1); }
+  .tl-pan li:first-child { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .hero-photo { transform: none; } .tl-pan .rail { transform: none; } }
 
 @media print { header, footer, .no-print { display: none !important; } body { background: white; } }
